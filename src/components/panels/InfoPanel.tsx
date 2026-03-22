@@ -135,15 +135,15 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   return (
     <div className="info-panel h-full flex flex-col overflow-hidden">
       {/* Header - Character Info */}
-      <div className="border-b border-white/20 pb-3 mb-3">
-        <div className="flex justify-between items-start mb-2">
+      <div className="border-b border-white/20 pb-2 mb-2">
+        <div className="flex justify-between items-start mb-1">
           <div>
-            <h2 className="text-xl font-bold tracking-wider">{character.name}</h2>
-            <p className="text-sm text-zinc-400">{lifeStageLabel(character.age, character.occupation)}</p>
+            <h2 className="text-base font-bold tracking-wider leading-tight">{character.name}</h2>
+            <p className="text-xs text-zinc-400">{lifeStageLabel(character.age, character.occupation)}</p>
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold">{character.age} yrs</p>
-            <p className="text-sm text-zinc-400">{character.location}</p>
+            <p className="text-base font-bold leading-tight">{character.age} yrs</p>
+            <p className="text-xs text-zinc-400">{character.location}</p>
           </div>
         </div>
 
@@ -172,28 +172,28 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         </div>
         
         {/* Stats */}
-        <div className="flex gap-4 mt-3 flex-wrap">
+        <div className="flex gap-3 mt-2 flex-wrap">
           <div className="flex items-center gap-1">
-            <span className="text-[10px] text-zinc-500 mr-1 uppercase">Health</span>
+            <span className="text-[10px] text-zinc-500 mr-0.5 uppercase">Health</span>
             {renderHearts()}
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-[10px] text-zinc-500 mr-1 uppercase">Wealth</span>
+            <span className="text-[10px] text-zinc-500 mr-0.5 uppercase">Wealth</span>
             {renderMoney()}
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-[10px] text-zinc-500 mr-1 uppercase">Happy</span>
+            <span className="text-[10px] text-zinc-500 mr-0.5 uppercase">Happy</span>
             {renderHappiness()}
           </div>
         </div>
 
         {/* Personality Tags */}
         {character.personality.length > 0 && (
-          <div className="flex gap-2 mt-3 flex-wrap">
+          <div className="flex gap-1.5 mt-2 flex-wrap">
             {character.personality.map(trait => (
-              <span 
+              <span
                 key={trait}
-                className="text-[10px] px-2 py-1 border border-white/20 text-zinc-400 uppercase"
+                className="text-[10px] px-1.5 py-0.5 border border-white/20 text-zinc-400 uppercase"
               >
                 {trait}
               </span>
@@ -203,9 +203,9 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
       </div>
 
       {/* Scene Image */}
-      <div 
-        className="shrink-0 w-full mb-3 flex justify-center border-2 border-white/70 bg-zinc-900 overflow-hidden" 
-        style={{ minHeight: '120px', height: '30vh', maxHeight: '320px' }}
+      <div
+        className="shrink-0 w-full mb-3 flex justify-center border-2 border-white/70 bg-zinc-900 overflow-hidden"
+        style={{ minHeight: '80px', height: 'clamp(80px, 18vh, 220px)' }}
       >
         <ScenePixelArt node={currentNode} birthplace={character.birthplace} />
       </div>

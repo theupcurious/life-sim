@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { GitBranch, BookOpen } from 'lucide-react';
 import Flowchart from '@/components/flowchart/Flowchart';
 import InfoPanel from '@/components/panels/InfoPanel';
 import useGameStore from '@/store/gameStore';
 
 const GameScreen: React.FC = () => {
+  const [mobileTab, setMobileTab] = useState<'story' | 'map'>('story');
+
   const {
     character,
     nodes,
@@ -25,7 +29,6 @@ const GameScreen: React.FC = () => {
     if (!currentNode) return;
 
     if (isReliveMode) {
-      // In relive mode, jump to any visited node
       navigateToNode(nodeId);
       return;
     }
@@ -37,6 +40,8 @@ const GameScreen: React.FC = () => {
     const nextNodes = getNextNodes(currentNodeId);
     if (nextNodes.some(n => n.id === nodeId)) {
       navigateToNode(nodeId);
+      // Switch to story tab after selecting a node on mobile
+      setMobileTab('story');
     }
   };
 
@@ -45,7 +50,6 @@ const GameScreen: React.FC = () => {
   };
 
   const handleNext = () => {
-    // Auto-advance to next node if there's only one path
     const nextNodes = getNextNodes(currentNodeId);
     if (nextNodes.length === 1) {
       navigateToNode(nextNodes[0].id);
@@ -54,13 +58,17 @@ const GameScreen: React.FC = () => {
 
   const handleRelive = () => {
     toggleReliveMode();
+    // Switch to map tab so users can pick a node to relive
+    setMobileTab('map');
   };
 
   return (
     <div className="h-screen w-screen bg-black flex flex-col lg:flex-row overflow-hidden">
-      {/* Flowchart Area - Left Side */}
-      <motion.div 
-        className="w-full h-[45%] lg:h-full lg:w-[45%] border-b lg:border-b-0 lg:border-r border-white/20"
+
+      {/* ── DESKTOP LAYOUT ── */}
+      {/* Flowchart Area - Left Side (desktop only) */}
+      <motion.div
+        className="hidden lg:flex w-full lg:h-full lg:w-[45%] border-r border-white/20"
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
@@ -75,9 +83,9 @@ const GameScreen: React.FC = () => {
         />
       </motion.div>
 
-      {/* Info Panel - Right Side */}
-      <motion.div 
-        className="w-full h-[55%] lg:h-full lg:w-[55%] p-4 md:p-6"
+      {/* Info Panel - Right Side (desktop only) */}
+      <motion.div
+        className="hidden lg:flex w-full lg:h-full lg:w-[55%] p-6"
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
@@ -93,7 +101,78 @@ const GameScreen: React.FC = () => {
         />
       </motion.div>
 
-      {/* Controls hint */}
+      {/* ── MOBILE LAYOUT ── */}
+      {/* Tab panels - take full height minus tab bar */}
+      <div className="lg:hidden flex flex-col flex-1 min-h-0">
+        {/* Story tab */}
+        {mobileTab === 'story' && (
+          <motion.div
+            key="story"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className="flex-1 min-h-0 p-4 overflow-hidden"
+          >
+            <InfoPanel
+              character={character}
+              currentNode={currentNode}
+              onChoice={handleChoice}
+              onNext={handleNext}
+              onRelive={handleRelive}
+              isReliveMode={isReliveMode}
+              gameEnded={gameEnded}
+            />
+          </motion.div>
+        )}
+
+        {/* Map tab */}
+        {mobileTab === 'map' && (
+          <motion.div
+            key="map"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className="flex-1 min-h-0"
+          >
+            <Flowchart
+              nodes={nodes}
+              connections={connections}
+              currentNodeId={currentNodeId}
+              visitedNodes={visitedNodes}
+              isReliveMode={isReliveMode}
+              onNodeClick={handleNodeClick}
+            />
+          </motion.div>
+        )}
+
+        {/* Mobile Tab Bar */}
+        <div className="shrink-0 flex border-t border-white/20 bg-black">
+          <button
+            onClick={() => setMobileTab('story')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs uppercase tracking-widest transition-all ${
+              mobileTab === 'story'
+                ? 'text-amber-400 border-t-2 border-amber-400 -mt-px'
+                : 'text-zinc-600'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            Story
+          </button>
+          <button
+            onClick={() => setMobileTab('map')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs uppercase tracking-widest transition-all ${
+              mobileTab === 'map'
+                ? 'text-amber-400 border-t-2 border-amber-400 -mt-px'
+                : 'text-zinc-600'
+            }`}
+          >
+            <GitBranch className="w-4 h-4" />
+            Life Map
+          </button>
+        </div>
+      </div>
+
+      {/* Controls hint - desktop only */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

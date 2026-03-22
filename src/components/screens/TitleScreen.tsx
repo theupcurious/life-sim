@@ -10,7 +10,7 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+      className="fixed inset-0 flex flex-col items-center justify-center relative overflow-y-auto"
       style={{ background: 'hsl(25, 10%, 4%)' }}
     >
       {/* Subtle vignette radial gradient */}

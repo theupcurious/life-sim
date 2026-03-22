@@ -176,7 +176,7 @@ const SummaryScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8">
+    <div className="fixed inset-0 bg-black flex flex-col items-center justify-start md:justify-center p-4 md:p-8 overflow-y-auto">
       {/* Background Effect */}
       <div className="absolute inset-0 opacity-5">
         <div 
@@ -199,7 +199,7 @@ const SummaryScreen: React.FC = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl font-bold tracking-widest mb-2"
+            className="text-2xl md:text-4xl font-bold tracking-widest mb-2"
           >
             <span className="text-white">LIFE </span>
             <span className="text-amber-400">COMPLETE</span>
@@ -214,10 +214,10 @@ const SummaryScreen: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="border-2 border-amber-400/50 bg-amber-400/10 p-6 mb-6 text-center"
+          className="border-2 border-amber-400/50 bg-amber-400/10 p-4 md:p-6 mb-4 md:mb-6 text-center"
         >
           <p className="text-xs text-amber-400 uppercase tracking-wider mb-2">Life Quality Score</p>
-          <p className="text-5xl font-bold text-amber-400">{lifeQuality}%</p>
+          <p className="text-4xl md:text-5xl font-bold text-amber-400">{lifeQuality}%</p>
           <p className="text-sm text-zinc-400 mt-2">
             {lifeQuality >= 80 ? 'A life well-lived' : 
              lifeQuality >= 60 ? 'A balanced existence' : 
@@ -230,9 +230,9 @@ const SummaryScreen: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="border-2 border-white/30 bg-zinc-900/50 p-6 mb-6"
+          className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
         >
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-3 md:gap-6">
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Name</p>
               <p className="text-xl font-bold">{character.name}</p>
@@ -254,7 +254,7 @@ const SummaryScreen: React.FC = () => {
           {/* Final Stats */}
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Final Status</p>
-            <div className="flex gap-8">
+            <div className="flex gap-4 md:gap-8 flex-wrap">
               <div>
                 <p className="text-xs text-zinc-500 mb-1">Health</p>
                 <div className="flex gap-1">
@@ -303,7 +303,7 @@ const SummaryScreen: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="border-2 border-white/30 bg-zinc-900/50 p-6 mb-6"
+          className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
         >
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4">Life Path Statistics</p>
           <div className="flex justify-between items-center mb-4">
@@ -326,7 +326,7 @@ const SummaryScreen: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="border-2 border-white/30 bg-zinc-900/50 p-6 mb-8"
+          className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-8"
         >
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4">Key Life Events</p>
           <div className="space-y-2 max-h-40 overflow-y-auto">

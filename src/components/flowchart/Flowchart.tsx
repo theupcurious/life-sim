@@ -26,6 +26,7 @@ const Flowchart: React.FC<FlowchartProps> = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const lastTouchDistance = useRef<number | null>(null);
 
   // Auto-center on current node when it changes
   useEffect(() => {
@@ -70,6 +71,42 @@ const Flowchart: React.FC<FlowchartProps> = ({
 
   const handleMouseUp = () => {
     setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
+      lastTouchDistance.current = null;
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastTouchDistance.current = Math.hypot(dx, dy);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && isDragging) {
+      const touch = e.touches[0];
+      setPosition({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y,
+      });
+    } else if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / lastTouchDistance.current;
+      setScale(prev => Math.max(0.5, Math.min(2, prev * ratio)));
+      lastTouchDistance.current = dist;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    lastTouchDistance.current = null;
   };
 
   const handleZoomIn = () => {
@@ -150,6 +187,9 @@ const Flowchart: React.FC<FlowchartProps> = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <motion.div
           className="relative"

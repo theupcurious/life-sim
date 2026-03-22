@@ -257,10 +257,10 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
   };
 
   return (
-    <div className="h-screen bg-black flex items-start md:items-center justify-center p-4 md:p-6 overflow-y-auto">
+    <div className="fixed inset-0 bg-black flex items-start md:items-center justify-center p-4 md:p-6 overflow-y-auto">
       {/* Background Grid */}
-      <div className="absolute inset-0 opacity-5">
-        <div 
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div
           className="w-full h-full"
           style={{
             backgroundImage: `
@@ -299,7 +299,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
         </div>
 
         {/* Content */}
-        <div className="border border-white/30 bg-black/80 p-5 md:p-8 mb-4 md:mb-6 max-h-[58vh] md:max-h-[62vh] overflow-y-auto">
+        <div className="border border-white/30 bg-black/80 p-5 md:p-8 mb-4 md:mb-6">
           {renderStep()}
         </div>
 
