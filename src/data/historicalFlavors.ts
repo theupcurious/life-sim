@@ -7,12 +7,25 @@ interface EraEntry {
   text: string;
   /** Optional pop-culture hook for teenage/young-adult nodes */
   pop?: string;
+  /**
+   * Earliest year at which `text` is safe to show.
+   * Defaults to `from`. Set this when the text references a specific event
+   * that happens mid-era (e.g. an era starts in 2003 but the text mentions
+   * a 2009 event — nodes in 2003–2008 should not see that sentence).
+   */
+  textFrom?: number;
+  /**
+   * Same gate for the `pop` hook.
+   */
+  popFrom?: number;
 }
 
 const ERAS: Record<SupportedCity, EraEntry[]> = {
   Tokyo: [
     {
       from: 1955, to: 1964,
+      // text references the 1964 Olympics — only safe once they've arrived
+      textFrom: 1964,
       text: `Tokyo is rebuilding at astonishing speed — the bullet train just launched for the 1964 Olympics and the country feels unstoppable.`,
       pop: `Godzilla is in cinemas and every kid knows it by heart.`,
     },
@@ -24,6 +37,8 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     {
       from: 1973, to: 1979,
       text: `The oil shock bites hard in 1973, but Japan pivots faster than anyone expects. The economy shakes, then steadies.`,
+      // pop references the 1979 Walkman launch
+      popFrom: 1979,
       pop: `Sony's Walkman lands in 1979, changing how the whole world listens to music — and it was made right here.`,
     },
     {
@@ -34,6 +49,8 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     {
       from: 1990, to: 1997,
       text: `The bubble bursts almost overnight in 1990. Banks collapse, real estate crumbles, and Japan enters what economists later call the Lost Decade — a long, quiet stagnation nobody fully expected.`,
+      // pop references Evangelion (1995)
+      popFrom: 1995,
       pop: `Evangelion airs in 1995 and captures something about the national mood that nobody can quite explain.`,
     },
     {
@@ -43,16 +60,23 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 2007, to: 2010,
+      // text references the 2008 financial crisis
+      textFrom: 2008,
       text: `The global financial crisis of 2008 hits Japan's export economy hard. Toyota recalls millions of cars; the national mood is cautious again.`,
       pop: `Perfume and AKB48 dominate charts; idol culture becomes a billion-dollar industry.`,
     },
     {
       from: 2011, to: 2019,
+      // text references 2011 earthquake; pop references Your Name (2016)
+      textFrom: 2011,
       text: `The 2011 earthquake and tsunami reshape everything — coastal towns, energy policy, national identity. Abenomics promises revival but wage growth remains elusive.`,
+      popFrom: 2016,
       pop: `Your Name breaks box office records worldwide; anime reaches a global audience that would have been unimaginable a generation ago.`,
     },
     {
       from: 2020, to: 2026,
+      // text references the 2021 Olympics (delayed from 2020)
+      textFrom: 2021,
       text: `The 2020 Olympics are delayed by COVID-19. Tokyo hosts them in 2021 — in empty stadiums. Birth rates hit record lows as the country quietly confronts a demographic cliff.`,
       pop: `City Pop of the 1980s goes viral on YouTube, rediscovered by a generation in São Paulo and Seoul.`,
     },
@@ -77,6 +101,8 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     {
       from: 1984, to: 1988,
       text: `Special Economic Zones boom in the south and the energy is electric. Refrigerators and televisions appear in apartments for the first time. Everyone believes the future is arriving.`,
+      // pop references Cui Jian's 1986 performance
+      popFrom: 1986,
       pop: `Cui Jian plays "Nothing to My Name" in 1986 and starts Chinese rock and roll. Bootleg cassettes pass hand to hand.`,
     },
     {
@@ -96,6 +122,8 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 2008, to: 2012,
+      // text references the 2008 Olympics opening ceremony
+      textFrom: 2008,
       text: `The 2008 Olympics open with a ceremony that stops the world. China is arriving — visibly, unmistakably. Growth keeps coming in at double digits.`,
       pop: `Jay Chou and Faye Wong dominate playlists; Mandopop is the soundtrack of the new China.`,
     },
@@ -129,16 +157,22 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 2000, to: 2009,
+      // text references the 2010 World Expo as an upcoming goal — safe to show
+      // from 2000 since it's framed as "building for" the Expo, not citing it as past
       text: `Shanghai is building for the 2010 World Expo and the construction cranes never stop. Property prices double, then double again. The city feels like it is being invented in real time.`,
       pop: `F4 and Taiwanese idol drama sweep the mainland; fashion magazines multiply. Being stylish in Shanghai means something again.`,
     },
     {
       from: 2010, to: 2019,
+      // text references post-Expo era; safe from 2010
+      textFrom: 2010,
       text: `Post-Expo, Shanghai has arrived. Luxury brands line Huaihai Road. The art scene — galleries, design weeks, M50 — attracts global attention alongside the finance and the tech.`,
       pop: `Dianping — the Yelp of China — turns dinner into an optimized experience. Every restaurant queue is a live leaderboard.`,
     },
     {
       from: 2020, to: 2026,
+      // text references the 2022 lockdown specifically
+      textFrom: 2022,
       text: `The 2022 lockdown traps 25 million people at home for two months. The psychological and economic shock lingers. Yet the city rebuilds with the stubborn energy it has always had.`,
       pop: `Bubble tea chains from Shanghai — HeyTea, Nayuki — become the new Starbucks across Asia.`,
     },
@@ -152,17 +186,23 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 1966, to: 1974,
+      // text references Stonewall (1969)
+      textFrom: 1969,
       text: `The city is in creative ferment and fiscal strain at the same time — Andy Warhol's Factory, Vietnam protests, Stonewall. Something is breaking open.`,
       pop: `The Velvet Underground play Max's Kansas City; half the crowd don't realize they're witnessing history.`,
     },
     {
       from: 1975, to: 1981,
+      // text references 1975 bankruptcy
+      textFrom: 1975,
       text: `New York nearly goes bankrupt in 1975. Graffiti covers the subway, whole Bronx blocks are abandoned, and arson for insurance is so common the borough smells of smoke. Yet out of that collapse, hip-hop is being born.`,
       pop: `Disco at Studio 54, hip-hop at Sedgwick Avenue — two different cities running parallel.`,
     },
     {
       from: 1982, to: 1989,
       text: `Wall Street explodes in the 1980s. Yuppies in suspenders flood the Upper East Side while the crack epidemic hollows out entire neighborhoods six blocks away.`,
+      // pop references "Walk This Way" (1986)
+      popFrom: 1986,
       pop: `"Walk This Way" with Run-DMC and Aerosmith plays everywhere — rap just crossed over and nothing will be the same.`,
     },
     {
@@ -172,21 +212,29 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 2001, to: 2007,
+      // text references September 11
+      textFrom: 2001,
       text: `September 11 reshapes the city permanently — the skyline is different, the mood is different, the politics are different. Yet New York refuses to let grief be the only story.`,
       pop: `The Strokes release Is This It out of the Lower East Side; rock is briefly the center of the world again.`,
     },
     {
       from: 2008, to: 2014,
+      // text references the 2008 financial crisis; pop references Empire State of Mind (2009)
+      textFrom: 2008,
       text: `The 2008 financial crisis starts three blocks from City Hall. Banks fail, bonuses vanish, and the city braces. Then slowly, stubbornly, it comes back.`,
+      popFrom: 2009,
       pop: `Jay-Z's "Empire State of Mind" is the city's anthem for a generation. Every New Yorker feels personally named.`,
     },
     {
       from: 2015, to: 2019,
       text: `Tech money floods Brooklyn and Manhattan. Rents hit levels nobody thought possible; whole neighborhoods lose their character in a decade. But the energy still crackles.`,
+      // Hamilton at the Public Theater opened in 2015
+      textFrom: 2015,
       pop: `Hamilton plays at the Public Theater before Broadway; every ticket is impossible and the cast recording is on every pair of headphones.`,
     },
     {
       from: 2020, to: 2026,
+      textFrom: 2020,
       text: `COVID-19 empties the streets that never empty. New York loses more people than any American city in the spring of 2020. The recovery is hard-won and uneven.`,
       pop: `"New York, New York" plays from apartment windows at 7 p.m. every evening — for the healthcare workers, and for the city itself.`,
     },
@@ -205,17 +253,24 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 1974, to: 1980,
+      // text references Harvey Milk's election and 1978 assassination
+      textFrom: 1978,
       text: `Harvey Milk is elected to the Board of Supervisors — the first openly gay elected official in California. His assassination in 1978 shocks the city and ignites the LGBTQ+ rights movement.`,
       pop: `Disco and punk live three blocks apart here and somehow both feel appropriate.`,
     },
     {
       from: 1981, to: 1989,
       text: `AIDS arrives and the city is devastated in ways that don't make the national news for years. Entire friend groups disappear. The Castro organizes for survival before the government does.`,
+      // pop references the first Macintosh (1984)
+      popFrom: 1984,
       pop: `The Dead Kennedys and Metallica come from here. So does the first Macintosh, assembled in a garage forty minutes south.`,
     },
     {
       from: 1990, to: 1998,
+      // text references Wired (1993); pop references Netscape IPO (1995)
+      textFrom: 1993,
       text: `A small internet is becoming a large one. Wired magazine launches in 1993 and the dot-com era begins — startups in SoMa, valuations that feel like fiction, a certain smell of money and possibility.`,
+      popFrom: 1995,
       pop: `Netscape goes public in 1995 and the stock price doubles on day one. Everyone starts thinking they should quit their job.`,
     },
     {
@@ -225,7 +280,10 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 2004, to: 2011,
+      // text references Google's 2004 IPO — safe from 2004; pop references Twitter (2006)
+      textFrom: 2004,
       text: `Google's IPO in 2004 signals the rebuilding. Facebook moves from Cambridge to Palo Alto. The tech buses start running, ferrying workers down the peninsula on company shuttles.`,
+      popFrom: 2006,
       pop: `Twitter is invented in a park brainstorm session in 2006. The founders disagree, quietly, about what it is.`,
     },
     {
@@ -248,16 +306,22 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 1967, to: 1975,
+      // CN Tower construction started 1973; text references watching it "go up"
+      textFrom: 1973,
       text: `Canada turns 100 in 1967 — Expo 67 in Montreal is the national coming-out party. Toronto watches the CN Tower go up year by year. Pierre Trudeau the elder is making federalism feel electric.`,
       pop: `Joni Mitchell, Neil Young, Gordon Lightfoot — Canadians are quietly dominating the American folk scene.`,
     },
     {
       from: 1976, to: 1984,
+      // text references CN Tower opening in 1976
+      textFrom: 1976,
       text: `The CN Tower opens in 1976 as the world's tallest structure — and it stays that way for a generation. The city is building confidence along with infrastructure.`,
       pop: `Saturday Night Fever and Star Wars compete for cinemas. SCTV is produced in Edmonton but it's a national joke machine.`,
     },
     {
       from: 1985, to: 1993,
+      // text references free trade passing in 1988
+      textFrom: 1988,
       text: `Free trade with the US passes after a fierce national debate in 1988. The early 1990s recession hits Ontario hard — car plants close, government deficits soar. It is a genuinely difficult few years.`,
       pop: `Degrassi Junior High plays every weekday after school. Its particular brand of relentless realism feels like life.`,
     },
@@ -268,17 +332,24 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 2003, to: 2010,
+      // text references SARS (2003); pop references Drake's 2009 mixtape
+      textFrom: 2003,
       text: `SARS in 2003 costs Toronto more than a billion dollars in tourism and trade. It is a warning about epidemic risk that most of the world forgets within a year.`,
+      popFrom: 2009,
       pop: `Drake releases his first mixtape So Far Gone in 2009 from his Toronto bedroom. The city has never been on the map quite like this.`,
     },
     {
       from: 2011, to: 2019,
       text: `Real estate prices rise every year without fail, turning homeownership into a life-organizing obsession. Tech sector jobs multiply; the waterfront transforms. Toronto is now a global city, still trying to figure out what that means.`,
+      // pop references "God's Plan" (2018)
+      popFrom: 2018,
       pop: `Drake's "God's Plan" is the year's most-streamed song. "Toronto" is now a brand, not just a city.`,
     },
     {
       from: 2020, to: 2026,
       text: `COVID hits the long-term care homes hardest — a national scandal. The city pivots, endures, and eventually returns to the steady pace of a place that knows how to absorb disruption.`,
+      // pop references The Weeknd's 2021 Super Bowl performance
+      popFrom: 2021,
       pop: `The Weeknd performs at the Super Bowl halftime show; the city claims him completely.`,
     },
   ],
@@ -286,11 +357,13 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
   Singapore: [
     {
       from: 1950, to: 1964,
+      // text references 1965 independence as upcoming — safe to frame as future from 1950+
       text: `Singapore is still a British colony for the early part of this era, then briefly part of Malaysia. Independence arrives in 1965 — and not entirely by choice.`,
       pop: `P. Ramlee's Malay films play in the cinemas. The city is polyglot, chaotic, and very young.`,
     },
     {
       from: 1965, to: 1975,
+      textFrom: 1965,
       text: `Lee Kuan Yew's government begins the great transformation — HDB flats go up everywhere, British troops leave, and the city-state that was told it could not survive starts surviving.`,
       pop: `National Day songs are catchy by government directive. The communal singalong is deliberate, and it works.`,
     },
@@ -301,22 +374,31 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
     },
     {
       from: 1985, to: 1993,
+      // text references the 1985 recession
+      textFrom: 1985,
       text: `A brief recession in 1985 is a shock — the first in twenty years. Singapore responds with structural reforms and recovers quickly. The city is pragmatic above all.`,
       pop: `The National Arts Council is set up. Singapore is trying to become a cultural hub, not just a logistics one.`,
     },
     {
       from: 1994, to: 2002,
+      // text references 1997 Asian financial crisis
+      textFrom: 1997,
       text: `The Asian financial crisis of 1997 hits neighbors hard but Singapore weathers it better than most. Changi Airport repeatedly wins best-in-world. The country is quietly proud of its efficiency.`,
       pop: `"Singapore Girl" is the world's most recognizable airline mascot. The city exports its brand of order even at 35,000 feet.`,
     },
     {
       from: 2003, to: 2009,
+      // text references SARS (2003)
+      textFrom: 2003,
       text: `SARS hits in 2003 — Singapore's contact tracing and quarantine system becomes a global case study. The government greenlit the Integrated Resorts (casinos) debate after years of refusing. Pragmatism wins again.`,
       pop: `Jack Neo's Singaporean comedies sell out cinemas. Singlish lah is a national identity marker, not just slang.`,
     },
     {
       from: 2010, to: 2019,
+      // text references Marina Bay Sands opening (2010); pop references Crazy Rich Asians (2018)
+      textFrom: 2010,
       text: `Marina Bay Sands opens in 2010 and instantly becomes the skyline. The city pivots to fintech, biomedical, and smart city tech. Income inequality rises uncomfortably alongside GDP.`,
+      popFrom: 2018,
       pop: `Crazy Rich Asians (2018) puts Singapore's glass towers and hawker centers before a global audience for the first time.`,
     },
     {
@@ -329,21 +411,27 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
 
 /**
  * Returns a contextual historical flavor snippet for a given city and calendar year.
- * Returns null if no matching era is found.
+ * Returns null if no matching era is found, or if the text references events
+ * that haven't happened yet relative to `year` (guarded by `textFrom`).
  */
 export function getHistoricalFlavor(city: string, year: number): string | null {
   const eras = ERAS[city as SupportedCity];
   if (!eras) return null;
-  const match = eras.find(e => year >= e.from && year <= e.to);
+  const match = eras.find(
+    e => year >= e.from && year <= e.to && year >= (e.textFrom ?? e.from),
+  );
   return match ? match.text : null;
 }
 
 /**
  * Returns the pop culture hook for a given city and year, for teenage/young-adult nodes.
+ * Respects `popFrom` so a hook referencing a future year is not shown early.
  */
 export function getPopCultureHook(city: string, year: number): string | null {
   const eras = ERAS[city as SupportedCity];
   if (!eras) return null;
-  const match = eras.find(e => year >= e.from && year <= e.to);
+  const match = eras.find(
+    e => year >= e.from && year <= e.to && year >= (e.popFrom ?? e.from),
+  );
   return match?.pop ?? null;
 }
