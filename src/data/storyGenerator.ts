@@ -7,6 +7,30 @@ import {
 } from '@/data/cityProfiles';
 import { getHistoricalFlavor, getPopCultureHook } from '@/data/historicalFlavors';
 
+/**
+ * Per-story deduplicator for historical flavor and pop-culture snippets.
+ * Each call checks whether the returned text has already appeared in this
+ * story; if so it returns null so the node description omits it, preventing
+ * the same era sentence from repeating in back-to-back nodes.
+ */
+interface FlavorTracker {
+  flavor: (city: string, year: number) => string | null;
+  pop:    (city: string, year: number) => string | null;
+}
+
+function makeFlavorTracker(): FlavorTracker {
+  const used = new Set<string>();
+  const track = (text: string | null): string | null => {
+    if (!text || used.has(text)) return null;
+    used.add(text);
+    return text;
+  };
+  return {
+    flavor: (city, year) => track(getHistoricalFlavor(city, year)),
+    pop:    (city, year) => track(getPopCultureHook(city, year)),
+  };
+}
+
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
@@ -37,6 +61,8 @@ export function generateLifeStory(character: Character): StoryNode[] {
   const nodes: StoryNode[] = [];
   const profile = getCityProfile(character.birthplace);
   const lifeExpectancy = 75 + Math.floor(Math.random() * 20); // 75-95 years
+  // One tracker per story so the same era sentence never repeats across nodes
+  const ft = makeFlavorTracker();
 
   nodes.push({
     id: 'start',
@@ -51,13 +77,13 @@ export function generateLifeStory(character: Character): StoryNode[] {
     category: 'childhood',
   });
 
-  nodes.push(...generateChildhoodNodes(character, profile));
+  nodes.push(...generateChildhoodNodes(character, profile, ft));
   nodes.push(generateRandomEvent('adolescent', character, profile));
-  nodes.push(...generateTeenageNodes(character, profile));
+  nodes.push(...generateTeenageNodes(character, profile, ft));
   // Education decision at 18 precedes the young-adult random event at 20
-  nodes.push(generateEducationDecision(character, profile));
+  nodes.push(generateEducationDecision(character, profile, ft));
   nodes.push(generateRandomEvent('young-adult', character, profile));
-  nodes.push(...generateCareerPaths(character, profile));
+  nodes.push(...generateCareerPaths(character, profile, ft));
   nodes.push(generateWorkLifeDecision(character, profile));
 
   // Optional city+era injected event — changes based on where and when you were born
@@ -66,7 +92,7 @@ export function generateLifeStory(character: Character): StoryNode[] {
 
   nodes.push(generatePostCareerBreather(character, profile));
   nodes.push(...generateRelationshipNodes(character, profile));
-  nodes.push(...generateMidlifeNodes(character, profile));
+  nodes.push(...generateMidlifeNodes(character, profile, ft));
   nodes.push(generateRandomEvent('midlife', character, profile));
   nodes.push(...generateLateLifeNodes(character, lifeExpectancy, profile));
 
@@ -195,11 +221,11 @@ function generateRandomEvent(phase: RandomEventPhase, character: Character, prof
   };
 }
 
-function generateChildhoodNodes(character: Character, profile: CityProfile): StoryNode[] {
+function generateChildhoodNodes(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode[] {
   const nodes: StoryNode[] = [];
   const personality = character.personality[0] || 'curious';
   const talent = character.skills[0] || 'learning';
-  const eraFlavor = getHistoricalFlavor(profile.city, character.birthYear + 5);
+  const eraFlavor = ft.flavor(profile.city, character.birthYear + 5);
 
   nodes.push({
     id: 'childhood-1',
@@ -217,7 +243,7 @@ function generateChildhoodNodes(character: Character, profile: CityProfile): Sto
     category: 'childhood',
   });
 
-  const schoolEra = getHistoricalFlavor(profile.city, character.birthYear + 8);
+  const schoolEra = ft.flavor(profile.city, character.birthYear + 8);
   nodes.push({
     id: 'childhood-2',
     type: 'event',
@@ -255,9 +281,9 @@ function generateChildhoodNodes(character: Character, profile: CityProfile): Sto
   return nodes;
 }
 
-function generateTeenageNodes(character: Character, profile: CityProfile): StoryNode[] {
+function generateTeenageNodes(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode[] {
   const nodes: StoryNode[] = [];
-  const pop15 = getPopCultureHook(profile.city, character.birthYear + 15);
+  const pop15 = ft.pop(profile.city, character.birthYear + 15);
 
   nodes.push({
     id: 'teenage-1',
@@ -341,7 +367,7 @@ function generateTeenageNodes(character: Character, profile: CityProfile): Story
     category: 'health',
   });
 
-  const pop17 = getPopCultureHook(profile.city, character.birthYear + 17);
+  const pop17 = ft.pop(profile.city, character.birthYear + 17);
   nodes.push({
     id: 'teenage-2',
     type: 'event',
@@ -361,9 +387,9 @@ function generateTeenageNodes(character: Character, profile: CityProfile): Story
   return nodes;
 }
 
-function generateEducationDecision(character: Character, profile: CityProfile): StoryNode {
+function generateEducationDecision(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode {
   const dream = dreamLabel(character.childhoodDream);
-  const eraAt18 = getHistoricalFlavor(profile.city, character.birthYear + 18);
+  const eraAt18 = ft.flavor(profile.city, character.birthYear + 18);
 
   return {
     id: 'education-decision',
@@ -412,7 +438,7 @@ function generateEducationDecision(character: Character, profile: CityProfile): 
   };
 }
 
-function generateCareerPaths(character: Character, profile: CityProfile): StoryNode[] {
+function generateCareerPaths(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode[] {
   const nodes: StoryNode[] = [];
   const skill = character.skills[0] || 'adaptability';
   const careerChoices = generateCareerChoices(character, profile);
@@ -540,7 +566,7 @@ function generateCareerPaths(character: Character, profile: CityProfile): StoryN
     : undefined;
   const careerOpener = madeEducationChoice ? careerConvergenceOpeners[madeEducationChoice] : 'At 25,';
 
-  const eraAt25 = getHistoricalFlavor(profile.city, character.birthYear + 25);
+  const eraAt25 = ft.flavor(profile.city, character.birthYear + 25);
   nodes.push({
     id: 'career-decision',
     type: 'decision',
@@ -1191,10 +1217,10 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   return nodes;
 }
 
-function generateMidlifeNodes(character: Character, profile: CityProfile): StoryNode[] {
+function generateMidlifeNodes(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode[] {
   const nodes: StoryNode[] = [];
 
-  const eraAt40 = getHistoricalFlavor(profile.city, character.birthYear + 40);
+  const eraAt40 = ft.flavor(profile.city, character.birthYear + 40);
   nodes.push({
     id: 'midlife-crisis',
     type: 'event',
