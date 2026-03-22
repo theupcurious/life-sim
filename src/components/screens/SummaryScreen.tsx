@@ -97,20 +97,20 @@ const SummaryScreen: React.FC = () => {
     ctx.fillRect(0, 0, W, H);
 
     // Grid
-    ctx.strokeStyle = 'rgba(0,255,255,0.04)';
+    ctx.strokeStyle = 'rgba(251,191,36,0.04)';
     ctx.lineWidth = 1;
     for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
     for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
 
     // Title
-    ctx.font = 'bold 90px monospace';
+    ctx.font = 'bold 90px serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fff';
-    ctx.fillText('SOME', W / 2 - 120, 130);
-    ctx.fillStyle = '#00ffff';
-    ctx.shadowColor = '#00ffff';
-    ctx.shadowBlur = 30;
-    ctx.fillText('ONE', W / 2 + 100, 130);
+    ctx.fillText('WHAT', W / 2 - 115, 130);
+    ctx.fillStyle = '#fbbf24';
+    ctx.shadowColor = '#fbbf24';
+    ctx.shadowBlur = 25;
+    ctx.fillText(' IF', W / 2 + 120, 130);
     ctx.shadowBlur = 0;
 
     // Divider
@@ -129,8 +129,8 @@ const SummaryScreen: React.FC = () => {
     ctx.fillText(`${character.birthplace}  ·  Age ${character.age}`, W / 2, 268);
 
     // Score
-    ctx.fillStyle = '#00ffff';
-    ctx.shadowColor = '#00ffff';
+    ctx.fillStyle = '#fbbf24';
+    ctx.shadowColor = '#fbbf24';
     ctx.shadowBlur = 20;
     ctx.font = 'bold 100px monospace';
     ctx.fillText(`${lifeQuality}%`, W / 2, 390);
@@ -167,7 +167,7 @@ const SummaryScreen: React.FC = () => {
       } catch {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `someone-${character.name.toLowerCase()}.png`; a.click();
+        a.href = url; a.download = `whatif-${character.name.toLowerCase()}.png`; a.click();
         URL.revokeObjectURL(url);
         if (btn) btn.textContent = '✓ Saved!';
       }
@@ -182,7 +182,7 @@ const SummaryScreen: React.FC = () => {
         <div 
           className="w-full h-full"
           style={{
-            backgroundImage: `radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.3) 0%, transparent 50%)`,
+            backgroundImage: `radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.3) 0%, transparent 50%)`,
           }}
         />
       </div>
@@ -202,7 +202,7 @@ const SummaryScreen: React.FC = () => {
             className="text-4xl font-bold tracking-widest mb-2"
           >
             <span className="text-white">LIFE </span>
-            <span className="text-cyan-400">COMPLETE</span>
+            <span className="text-amber-400">COMPLETE</span>
           </motion.h1>
           <p className="text-zinc-500 text-sm tracking-wider">
             The journey of {character.name} has ended
@@ -214,10 +214,10 @@ const SummaryScreen: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="border-2 border-cyan-400/50 bg-cyan-400/10 p-6 mb-6 text-center"
+          className="border-2 border-amber-400/50 bg-amber-400/10 p-6 mb-6 text-center"
         >
-          <p className="text-xs text-cyan-400 uppercase tracking-wider mb-2">Life Quality Score</p>
-          <p className="text-5xl font-bold text-cyan-400">{lifeQuality}%</p>
+          <p className="text-xs text-amber-400 uppercase tracking-wider mb-2">Life Quality Score</p>
+          <p className="text-5xl font-bold text-amber-400">{lifeQuality}%</p>
           <p className="text-sm text-zinc-400 mt-2">
             {lifeQuality >= 80 ? 'A life well-lived' : 
              lifeQuality >= 60 ? 'A balanced existence' : 
@@ -288,7 +288,7 @@ const SummaryScreen: React.FC = () => {
                     <Smile
                       key={i}
                       className={`w-5 h-5 ${
-                        i < character.happiness ? 'text-cyan-400' : 'text-zinc-700'
+                        i < character.happiness ? 'text-amber-400' : 'text-zinc-700'
                       }`}
                     />
                   ))}
@@ -308,14 +308,14 @@ const SummaryScreen: React.FC = () => {
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4">Life Path Statistics</p>
           <div className="flex justify-between items-center mb-4">
             <span className="text-zinc-400">Nodes Visited</span>
-            <span className="text-cyan-400 font-bold">{visitedCount} / {totalNodes}</span>
+            <span className="text-amber-400 font-bold">{visitedCount} / {totalNodes}</span>
           </div>
           <div className="w-full bg-zinc-800 h-2 mb-2">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${completionPercentage}%` }}
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="h-full bg-cyan-400"
+              className="h-full bg-amber-400"
             />
           </div>
           <p className="text-right text-xs text-zinc-500">{completionPercentage}% explored</p>
@@ -335,7 +335,7 @@ const SummaryScreen: React.FC = () => {
               .slice(-5)
               .map((node) => (
                 <div key={node.id} className="flex gap-3 text-sm">
-                  <span className="text-cyan-400 w-12">{node.year}</span>
+                  <span className="text-amber-400 w-12">{node.year}</span>
                   <span className="text-zinc-300">{node.title || node.type}</span>
                 </div>
               ))}
@@ -347,7 +347,7 @@ const SummaryScreen: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55 }}
-          className="border-l-2 border-cyan-400/40 pl-4 mb-6"
+          className="border-l-2 border-amber-400/40 pl-4 mb-6"
         >
           <p className="text-sm text-zinc-400 leading-relaxed italic">{lifeSummary}</p>
         </motion.div>
@@ -361,7 +361,7 @@ const SummaryScreen: React.FC = () => {
         >
           <button
             onClick={handleRelive}
-            className="flex-1 game-button border-cyan-400 text-cyan-400"
+            className="flex-1 game-button border-amber-400 text-amber-400"
           >
             Where to Relive?
           </button>

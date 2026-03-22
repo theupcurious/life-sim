@@ -14,6 +14,16 @@ interface InfoPanelProps {
   gameEnded: boolean;
 }
 
+function lifeStageLabel(age: number, occupation: string): string {
+  if (occupation && occupation !== 'Newborn') return occupation;
+  if (age < 2)  return 'Newborn';
+  if (age < 6)  return 'Child';
+  if (age < 13) return 'Kid';
+  if (age < 18) return 'Teenager';
+  if (age < 22) return 'Young Adult';
+  return 'Finding Their Way';
+}
+
 // Typewriter effect component
 const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 25 }) => {
   const [displayedText, setDisplayedText] = useState('');
@@ -100,7 +110,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         key={i}
         className={`w-4 h-4 ${
           i < character.happiness 
-            ? 'text-cyan-400' 
+            ? 'text-amber-400' 
             : 'text-zinc-700'
         }`}
       />
@@ -129,7 +139,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         <div className="flex justify-between items-start mb-2">
           <div>
             <h2 className="text-xl font-bold tracking-wider">{character.name}</h2>
-            <p className="text-sm text-zinc-400">{character.occupation}</p>
+            <p className="text-sm text-zinc-400">{lifeStageLabel(character.age, character.occupation)}</p>
           </div>
           <div className="text-right">
             <p className="text-lg font-bold">{character.age} yrs</p>
@@ -141,7 +151,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         <div className="mt-2 mb-1">
           <div className="relative w-full h-1 bg-zinc-800">
             <div
-              className="absolute left-0 top-0 h-full bg-cyan-400 transition-all duration-700"
+              className="absolute left-0 top-0 h-full bg-amber-400 transition-all duration-700"
               style={{ width: `${agePercent}%` }}
             />
             {[20, 40, 60, 80].map(tick => (
@@ -193,14 +203,17 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
       </div>
 
       {/* Scene Image */}
-      <div className="pixel-art-container w-full h-36 md:h-44 mb-3 bg-zinc-900 flex items-center justify-center border-2 border-white/70">
+      <div 
+        className="shrink-0 w-full mb-3 flex justify-center border-2 border-white/70 bg-zinc-900 overflow-hidden" 
+        style={{ minHeight: '120px', height: '30vh', maxHeight: '320px' }}
+      >
         <ScenePixelArt node={currentNode} birthplace={character.birthplace} />
       </div>
 
       <div className="flex items-center justify-between mb-3 text-[10px] uppercase tracking-wider">
         <span className="text-zinc-500">{currentNode.year}</span>
         {currentNode.category && (
-          <span className="text-cyan-400">{currentNode.category}</span>
+          <span className="text-amber-400">{currentNode.category}</span>
         )}
       </div>
 
@@ -216,7 +229,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
               transition={{ duration: 0.3 }}
             >
               {currentNode.title && (
-                <h3 className="text-lg font-bold mb-2 text-cyan-400">
+                <h3 className="text-lg font-bold mb-2 text-amber-400">
                   {currentNode.title}
                 </h3>
               )}
@@ -260,7 +273,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
                 className={`choice-button text-left p-3 ${locked ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-start gap-3">
-                  <span className="text-cyan-400 font-bold mt-0.5">{String.fromCharCode(65 + index)}.</span>
+                  <span className="text-amber-400 font-bold mt-0.5">{String.fromCharCode(65 + index)}.</span>
                   <div>
                     <div className="text-white font-medium">{choice.text}</div>
                     {choice.description && (
@@ -282,7 +295,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
                         </span>
                       )}
                       {!locked && choice.effects.happiness !== undefined && (
-                        <span className={`text-[10px] ${choice.effects.happiness > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                        <span className={`text-[10px] ${choice.effects.happiness > 0 ? 'text-amber-400' : 'text-red-400'}`}>
                           Happy {choice.effects.happiness > 0 ? '+' : ''}{choice.effects.happiness}
                         </span>
                       )}
@@ -320,8 +333,8 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             transition={{ delay: 0.3 }}
             className="mt-3 space-y-3 shrink-0"
           >
-            <div className="text-center py-4 border border-cyan-400/50 bg-cyan-400/10">
-              <p className="text-cyan-400 uppercase tracking-widest text-sm mb-2">
+            <div className="text-center py-4 border border-amber-400/50 bg-amber-400/10">
+              <p className="text-amber-400 uppercase tracking-widest text-sm mb-2">
                 Life Complete
               </p>
               <p className="text-xs text-zinc-400">
@@ -330,7 +343,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             </div>
             <button
               onClick={onRelive}
-              className="game-button w-full border-cyan-400 text-cyan-400"
+              className="game-button w-full border-amber-400 text-amber-400"
             >
               Where to Relive?
             </button>

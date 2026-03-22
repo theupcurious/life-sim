@@ -70,7 +70,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
             exit={{ opacity: 0, x: -50 }}
             className="space-y-6"
           >
-            <h2 className="text-2xl font-bold text-cyan-400 mb-6">Who are you?</h2>
+            <h2 className="text-2xl font-bold text-amber-400 mb-6">Who are you?</h2>
             
             {/* Name Input */}
             <div>
@@ -81,7 +81,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                 onChange={(e) => setInput(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter a name..."
                 className="w-full bg-zinc-900 border border-white/30 px-4 py-3 text-white 
-                         placeholder-zinc-600 focus:border-cyan-400 focus:outline-none
+                         placeholder-zinc-600 focus:border-amber-400 focus:outline-none
                          transition-colors"
               />
             </div>
@@ -96,7 +96,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                     onClick={() => setInput(prev => ({ ...prev, gender }))}
                     className={`flex-1 py-3 border uppercase tracking-wider text-sm
                               ${input.gender === gender 
-                                ? 'border-cyan-400 bg-cyan-400/20 text-cyan-400' 
+                                ? 'border-amber-400 bg-amber-400/20 text-amber-400' 
                                 : 'border-white/30 text-zinc-400 hover:border-white/60'}`}
                   >
                     {gender}
@@ -112,7 +112,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                 value={input.birthplace}
                 onChange={(e) => setInput(prev => ({ ...prev, birthplace: e.target.value }))}
                 className="w-full bg-zinc-900 border border-white/30 px-4 py-3 text-white
-                         focus:border-cyan-400 focus:outline-none appearance-none cursor-pointer"
+                         focus:border-amber-400 focus:outline-none appearance-none cursor-pointer"
               >
                 {CITY_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -149,7 +149,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
             exit={{ opacity: 0, x: -50 }}
             className="space-y-6"
           >
-            <h2 className="text-2xl font-bold text-cyan-400 mb-6">What defines you?</h2>
+            <h2 className="text-2xl font-bold text-amber-400 mb-6">What defines you?</h2>
             <p className="text-zinc-400 text-sm mb-4">Select up to 3 personality traits</p>
             
             <div className="grid grid-cols-2 gap-3">
@@ -159,11 +159,11 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                   onClick={() => handlePersonalityToggle(option.id)}
                   className={`p-4 border text-left transition-all
                     ${input.personalityTraits.includes(option.id)
-                      ? 'border-cyan-400 bg-cyan-400/10'
+                      ? 'border-amber-400 bg-amber-400/10'
                       : 'border-white/30 hover:border-white/60'}`}
                 >
                   <span className="text-2xl mr-3">{option.icon}</span>
-                  <span className={input.personalityTraits.includes(option.id) ? 'text-cyan-400' : 'text-zinc-400'}>
+                  <span className={input.personalityTraits.includes(option.id) ? 'text-amber-400' : 'text-zinc-400'}>
                     {option.label}
                   </span>
                 </button>
@@ -184,7 +184,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
             exit={{ opacity: 0, x: -50 }}
             className="space-y-6"
           >
-            <h2 className="text-2xl font-bold text-cyan-400 mb-6">What did you dream of?</h2>
+            <h2 className="text-2xl font-bold text-amber-400 mb-6">What did you dream of?</h2>
             <p className="text-zinc-400 text-sm mb-4">As a child, what did you want most?</p>
             
             <div className="space-y-2">
@@ -194,10 +194,10 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                   onClick={() => setInput(prev => ({ ...prev, childhoodDream: dream.id }))}
                   className={`w-full p-3 border text-left transition-all
                     ${input.childhoodDream === dream.id
-                      ? 'border-cyan-400 bg-cyan-400/10'
+                      ? 'border-amber-400 bg-amber-400/10'
                       : 'border-white/30 hover:border-white/60'}`}
                 >
-                  <div className={input.childhoodDream === dream.id ? 'text-cyan-400 font-bold' : 'text-white'}>
+                  <div className={input.childhoodDream === dream.id ? 'text-amber-400 font-bold' : 'text-white'}>
                     {dream.label}
                   </div>
                   <div className="text-sm text-zinc-500 mt-1">
@@ -217,7 +217,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
             exit={{ opacity: 0, x: -50 }}
             className="space-y-6"
           >
-            <h2 className="text-2xl font-bold text-cyan-400 mb-6">Ready to begin?</h2>
+            <h2 className="text-2xl font-bold text-amber-400 mb-6">Ready to begin?</h2>
             
             <div className="border border-white/30 bg-zinc-900/50 p-6 space-y-4">
               <div className="flex justify-between">
@@ -281,7 +281,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold tracking-widest mb-2">
             <span className="text-white">CREATE </span>
-            <span className="text-cyan-400">LIFE</span>
+            <span className="text-amber-400">LIFE</span>
           </h1>
           <p className="text-zinc-500 text-sm">Design your character's beginning</p>
         </div>
@@ -292,7 +292,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
             <div
               key={s}
               className={`flex-1 h-1 ${
-                s <= step ? 'bg-cyan-400' : 'bg-zinc-800'
+                s <= step ? 'bg-amber-400' : 'bg-zinc-800'
               }`}
             />
           ))}
@@ -325,7 +325,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
           ) : (
             <button
               onClick={() => onCreate(input)}
-              className="flex-1 game-button border-cyan-400 text-cyan-400"
+              className="flex-1 game-button border-amber-400 text-amber-400"
             >
               Begin Life Journey
             </button>
@@ -336,7 +336,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
         <div className="mt-6 text-center">
           <button
             onClick={onRandom}
-            className="text-zinc-500 hover:text-cyan-400 text-sm transition-colors"
+            className="text-zinc-500 hover:text-amber-400 text-sm transition-colors"
           >
             Or generate a random character →
           </button>

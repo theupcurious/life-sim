@@ -116,21 +116,21 @@ const Flowchart: React.FC<FlowchartProps> = ({
         <button
           onClick={handleZoomIn}
           className="w-10 h-10 border border-white/50 bg-black/80 text-white 
-                     hover:bg-cyan-400/20 hover:border-cyan-400 transition-all"
+                     hover:bg-amber-400/20 hover:border-amber-400 transition-all"
         >
           +
         </button>
         <button
           onClick={handleZoomOut}
           className="w-10 h-10 border border-white/50 bg-black/80 text-white 
-                     hover:bg-cyan-400/20 hover:border-cyan-400 transition-all"
+                     hover:bg-amber-400/20 hover:border-amber-400 transition-all"
         >
           -
         </button>
         <button
           onClick={handleResetView}
           className="w-10 h-10 border border-white/50 bg-black/80 text-white 
-                     hover:bg-cyan-400/20 hover:border-cyan-400 transition-all text-xs"
+                     hover:bg-amber-400/20 hover:border-amber-400 transition-all text-xs"
         >
           ⌖
         </button>
@@ -195,8 +195,8 @@ const Flowchart: React.FC<FlowchartProps> = ({
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20
-                     px-6 py-2 border-2 border-cyan-400 bg-black/90
-                     text-cyan-400 uppercase tracking-widest text-sm"
+                     px-6 py-2 border-2 border-amber-400 bg-black/90
+                     text-amber-400 uppercase tracking-widest text-sm"
         >
           Where to Relive?
         </motion.div>
