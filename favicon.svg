@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#000"/>
+  <text x="3" y="22" font-family="monospace" font-weight="bold" font-size="14" fill="white">SO</text>
+  <text x="3" y="30" font-family="monospace" font-weight="bold" font-size="8" fill="#00ffff">ME</text>
+  <circle cx="26" cy="8" r="3" fill="none" stroke="#00ffff" stroke-width="1.5"/>
+  <rect x="21" y="16" width="9" height="6" fill="none" stroke="#00ffff" stroke-width="1.5"/>
+  <line x1="26" y1="11" x2="26" y2="16" stroke="#00ffff" stroke-width="1" opacity="0.5"/>
+</svg>

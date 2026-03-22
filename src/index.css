@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 180 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 180 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 100%;
+    --input: 0 0% 15%;
+    --ring: 180 100% 50%;
+    --radius: 0;
+    
+    /* Game specific colors */
+    --cyan-glow: 180 100% 50%;
+    --gold: 45 100% 50%;
+    --heart: 0 70% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-black text-white;
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  /* Flowchart Node Styles */
+  .node-decision-content {
+    @apply absolute inset-0 flex items-center justify-center text-xs uppercase tracking-wider;
+    transform: rotate(-45deg);
+  }
+  
+  .node-decision {
+    @apply relative w-20 h-20 border-2 border-zinc-700 bg-transparent opacity-40;
+    transform: rotate(45deg);
+  }
+
+  .node-decision.visited {
+    @apply border-zinc-400 opacity-80;
+  }
+
+  .node-decision.active {
+    @apply border-cyan-400 opacity-100;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.2);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .node-event {
+    @apply relative px-4 py-2 border-2 border-zinc-700 bg-zinc-900/50 text-zinc-600;
+    min-width: 100px;
+  }
+
+  .node-event.visited {
+    @apply border-zinc-500 bg-zinc-800 text-zinc-300;
+  }
+
+  .node-event.active {
+    @apply border-cyan-400 text-white;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  }
+  
+  .node-time {
+    @apply relative w-14 h-14 border-2 border-zinc-700 bg-zinc-900 rounded-full flex items-center justify-center text-sm text-zinc-600 opacity-40;
+  }
+
+  .node-time.visited {
+    @apply border-zinc-500 text-zinc-300 opacity-80;
+  }
+  
+  .node-time.active {
+    @apply border-cyan-400 text-white opacity-100;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+  }
+  
+  .node-start, .node-end {
+    @apply relative w-16 h-16 border-3 border-white rounded-full flex items-center justify-center;
+  }
+  
+  .node-start::before, .node-end::before {
+    content: '';
+    @apply absolute w-10 h-10 border-2 border-white rounded-full;
+  }
+  
+  /* Connection Lines */
+  .connection-line {
+    @apply absolute bg-white;
+    height: 2px;
+    transform-origin: left center;
+  }
+  
+  .connection-line.taken {
+    @apply bg-white;
+  }
+  
+  .connection-line.alternative {
+    @apply bg-zinc-600;
+    background-image: linear-gradient(90deg, transparent 50%, #666 50%);
+    background-size: 10px 2px;
+  }
+  
+  /* Info Panel */
+  .info-panel {
+    @apply border-2 border-white bg-black/90 p-5;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+  
+  /* Stats Display */
+  .stat-yen {
+    @apply text-yellow-400;
+  }
+  
+  .stat-heart {
+    @apply text-red-400;
+  }
+  
+  /* Typewriter Effect */
+  .typewriter {
+    overflow: hidden;
+    border-right: 2px solid white;
+    white-space: pre-wrap;
+    animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+  }
+  
+  /* Glow Effects */
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  }
+  
+  .glow-text {
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  }
+  
+  /* Button Styles */
+  .game-button {
+    @apply px-6 py-3 border-2 border-white bg-transparent text-white uppercase tracking-widest;
+    @apply transition-all duration-300;
+  }
+  
+  .game-button:hover {
+    @apply bg-cyan-400/20 border-cyan-400;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+  }
+  
+  /* Choice Buttons */
+  .choice-button {
+    @apply w-full p-4 border-2 border-white/50 bg-zinc-900/80 text-left;
+    @apply transition-all duration-300;
+  }
+  
+  .choice-button:hover {
+    @apply border-cyan-400 bg-cyan-400/10;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  }
+  
+  /* Relive Mode */
+  .relive-mode .node-time.visited,
+  .relive-mode .node-event.visited {
+    @apply cursor-pointer;
+  }
+  
+  .relive-mode .node-time.visited:hover,
+  .relive-mode .node-event.visited:hover {
+    @apply border-cyan-400;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  }
+  
+  /* Pixel Art Image Container */
+  .pixel-art-container {
+    @apply relative overflow-hidden border-2 border-white;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #000;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border: 1px solid #fff;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+@layer utilities {
+  .border-3 {
+    border-width: 3px;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* Keyframes */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.8), inset 0 0 30px rgba(0, 255, 255, 0.3);
+  }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: white; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes line-travel {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 0; }
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(0, 255, 255, 0.3);
+  color: white;
+}
