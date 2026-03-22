@@ -10,12 +10,12 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-center relative overflow-y-auto"
+      className="fixed inset-0 overflow-y-auto"
       style={{ background: 'hsl(25, 10%, 4%)' }}
     >
       {/* Subtle vignette radial gradient */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="fixed inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(ellipse at 50% 40%, rgba(251,191,36,0.04) 0%, transparent 70%)',
         }}
@@ -23,7 +23,7 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
 
       {/* Very subtle grid — far less intrusive than before */}
       <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        className="fixed inset-0 opacity-[0.04] pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
@@ -33,12 +33,16 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
         }}
       />
 
+      {/* Centering wrapper — min-h-full + flex so content is centered when it
+          fits the viewport, and padding ensures breathing room when it scrolls */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center py-12 px-6">
+
       {/* Main content card */}
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-lg mx-auto px-6"
+        className="w-full max-w-lg mx-auto"
       >
         {/* Upcurious eyebrow */}
         <motion.p
@@ -159,10 +163,12 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.6 }}
-        className="absolute bottom-6 text-xs tracking-[0.2em] text-zinc-700 hover:text-zinc-400 transition-colors"
+        className="mt-8 text-xs tracking-[0.2em] text-zinc-700 hover:text-zinc-400 transition-colors"
       >
         by Upcurious
       </motion.a>
+
+      </div>{/* end centering wrapper */}
     </div>
   );
 };
