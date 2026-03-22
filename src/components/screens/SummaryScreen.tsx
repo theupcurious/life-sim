@@ -103,14 +103,12 @@ const SummaryScreen: React.FC = () => {
     for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
 
     // Title
-    ctx.font = 'bold 90px serif';
+    ctx.font = 'bold 120px serif';
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#fff';
-    ctx.fillText('WHAT', W / 2 - 115, 130);
     ctx.fillStyle = '#fbbf24';
     ctx.shadowColor = '#fbbf24';
     ctx.shadowBlur = 25;
-    ctx.fillText(' IF', W / 2 + 120, 130);
+    ctx.fillText('IF', W / 2, 145);
     ctx.shadowBlur = 0;
 
     // Divider
@@ -167,7 +165,7 @@ const SummaryScreen: React.FC = () => {
       } catch {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `whatif-${character.name.toLowerCase()}.png`; a.click();
+        a.href = url; a.download = `if-${character.name.toLowerCase()}.png`; a.click();
         URL.revokeObjectURL(url);
         if (btn) btn.textContent = '✓ Saved!';
       }

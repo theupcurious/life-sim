@@ -69,8 +69,7 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
               fontWeight: 900,
             }}
           >
-            <span className="text-white">WHAT</span>
-            <span style={{ color: '#fbbf24' }}> IF</span>
+            <span style={{ color: '#fbbf24' }}>IF</span>
           </h1>
         </motion.div>
 
