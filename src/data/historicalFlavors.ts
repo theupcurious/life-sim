@@ -52,7 +52,7 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
       pop: `Your Name breaks box office records worldwide; anime reaches a global audience that would have been unimaginable a generation ago.`,
     },
     {
-      from: 2020, to: 2099,
+      from: 2020, to: 2026,
       text: `The 2020 Olympics are delayed by COVID-19. Tokyo hosts them in 2021 — in empty stadiums. Birth rates hit record lows as the country quietly confronts a demographic cliff.`,
       pop: `City Pop of the 1980s goes viral on YouTube, rediscovered by a generation in São Paulo and Seoul.`,
     },
@@ -105,7 +105,7 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
       pop: `The Palace Museum goes viral on social media — "Forbidden City aesthetic" sells out. Ancient and modern collapse into the same selfie.`,
     },
     {
-      from: 2020, to: 2099,
+      from: 2020, to: 2026,
       text: `COVID-19 starts here, and China seals off with a speed the rest of the world watches in disbelief. Zero-COVID years later bring a deep economic hangover; the property bubble wobbles.`,
       pop: `Douyin — TikTok's Chinese twin — is the lens through which a generation documents everything.`,
     },
@@ -138,7 +138,7 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
       pop: `Dianping — the Yelp of China — turns dinner into an optimized experience. Every restaurant queue is a live leaderboard.`,
     },
     {
-      from: 2020, to: 2099,
+      from: 2020, to: 2026,
       text: `The 2022 lockdown traps 25 million people at home for two months. The psychological and economic shock lingers. Yet the city rebuilds with the stubborn energy it has always had.`,
       pop: `Bubble tea chains from Shanghai — HeyTea, Nayuki — become the new Starbucks across Asia.`,
     },
@@ -186,7 +186,7 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
       pop: `Hamilton plays at the Public Theater before Broadway; every ticket is impossible and the cast recording is on every pair of headphones.`,
     },
     {
-      from: 2020, to: 2099,
+      from: 2020, to: 2026,
       text: `COVID-19 empties the streets that never empty. New York loses more people than any American city in the spring of 2020. The recovery is hard-won and uneven.`,
       pop: `"New York, New York" plays from apartment windows at 7 p.m. every evening — for the healthcare workers, and for the city itself.`,
     },
@@ -234,7 +234,7 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
       pop: `Kendrick Lamar is from Compton but feels like the Bay. "Alright" becomes an anthem at protests from Oakland to Ferguson.`,
     },
     {
-      from: 2020, to: 2099,
+      from: 2020, to: 2026,
       text: `COVID empties the offices that were always full. Half of tech goes remote permanently; rents fall, then rise in different cities. San Francisco argues about whether it needs to reinvent itself again.`,
       pop: `A Bay Area meme — "tech people in Slack" — captures the era better than any memoir.`,
     },
@@ -277,7 +277,7 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
       pop: `Drake's "God's Plan" is the year's most-streamed song. "Toronto" is now a brand, not just a city.`,
     },
     {
-      from: 2020, to: 2099,
+      from: 2020, to: 2026,
       text: `COVID hits the long-term care homes hardest — a national scandal. The city pivots, endures, and eventually returns to the steady pace of a place that knows how to absorb disruption.`,
       pop: `The Weeknd performs at the Super Bowl halftime show; the city claims him completely.`,
     },
@@ -320,7 +320,7 @@ const ERAS: Record<SupportedCity, EraEntry[]> = {
       pop: `Crazy Rich Asians (2018) puts Singapore's glass towers and hawker centers before a global audience for the first time.`,
     },
     {
-      from: 2020, to: 2099,
+      from: 2020, to: 2026,
       text: `Singapore's pandemic response is disciplined and fast — masks, QR codes, TraceTogether — then vaccines at record speed. The city-state resumes its quiet, ordered efficiency as if nothing too dramatic happened.`,
       pop: `BTS play Singapore on their world tour; 50,000 people queue for tickets that disappear in four minutes.`,
     },
