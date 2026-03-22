@@ -773,21 +773,25 @@ function generateWorkLifeDecision(character: Character, profile: CityProfile): S
 }
 
 /**
- * A breathing-room event between the work-life choice and the relationship phase.
- * Content varies per personality so it reads differently each run.
- * Also determines the relationship decision age dynamically.
+ * Returns the age at which the relationship decision occurs.
+ * Must be deterministic (no Math.random) because it is called from two
+ * separate generator functions; a random call here would produce different
+ * values for the breather node vs. the relationship-decision node.
+ * Must also be >= 33 so that all downstream outcome nodes (which are placed
+ * at relAge + 1) stay ahead of the work-life-decision node at age 31.
  */
 function getRelationshipAge(character: Character): number {
-  if (character.personality.includes('adventurous') || character.childhoodDream === 'freedom') return 36;
-  if (character.personality.includes('empathetic') || character.childhoodDream === 'love') return 30;
-  // Mild randomization so the same character still varies between runs
-  return 32 + Math.floor(Math.random() * 3);
+  if (character.personality.includes('adventurous') || character.childhoodDream === 'freedom') return 33;
+  if (character.personality.includes('empathetic') || character.childhoodDream === 'love') return 32;
+  return 32;
 }
 
 function generatePostCareerBreather(character: Character, profile: CityProfile): StoryNode {
   const p = pronouns(character.gender);
   const personality = character.personality[0] || 'curious';
-  const breatherAge = getRelationshipAge(character) - 1;
+  // Breather sits one year before the relationship decision, but never before
+  // the work-life-decision node at age 31.
+  const breatherAge = Math.max(32, getRelationshipAge(character) - 1);
 
   const descriptions: Record<string, string> = {
     ambitious: `${character.name} has spent the last few years pushing hard. The results are visible, but something quieter has been accumulating: a readiness for a different kind of depth. ${profile.city} continues at full speed; ${p.subject} begins to wonder if that pace should be ${p.possessive} only speed.`,
@@ -977,6 +981,13 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   const nodes: StoryNode[] = [];
   const relAge = getRelationshipAge(character);
 
+  // All downstream ages are anchored to relAge so the timeline never goes
+  // backward regardless of which relationship path the character is on.
+  const outcomeAge   = relAge + 1;  // married-young / single-focused / cohabitation
+  const familyAge    = relAge + 3;  // family-decision
+  const familyPath1  = relAge + 5;  // first diverging family event (parent / childless / adoption)
+  const familyPath2  = relAge + 7;  // second converging family event → midlife-crisis
+
   nodes.push({
     id: 'relationship-decision',
     type: 'decision',
@@ -987,7 +998,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
     choices: [
       {
         id: 'marry-young',
-        text: 'Marry Young',
+        text: 'Commit to the Relationship',
         description: 'Choose commitment and shared long-term planning',
         nextNodeId: 'married-young',
         effects: { happiness: 2, money: -1 },
@@ -1016,10 +1027,10 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'married-young',
     type: 'event',
-    year: character.birthYear + 32,
-    age: 32,
+    year: character.birthYear + outcomeAge,
+    age: outcomeAge,
     title: 'Early Commitment',
-    description: `${character.name} builds a shared household early in life. Daily routines become richer, but so do responsibilities and compromises.`,
+    description: `${character.name} builds a shared household. Daily routines become richer, but so do responsibilities and compromises.`,
     nextNodeIds: ['family-decision'],
     imagePrompt: `pixel art cozy apartment evening in ${profile.city}`,
     position: { x: 0, y: 0 },
@@ -1030,8 +1041,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'single-focused',
     type: 'event',
-    year: character.birthYear + 32,
-    age: 32,
+    year: character.birthYear + outcomeAge,
+    age: outcomeAge,
     title: 'Independent Years',
     description: `${character.name} channels energy into personal goals, career growth, and chosen communities. Freedom is real, but so is occasional isolation.`,
     nextNodeIds: ['family-decision'],
@@ -1044,8 +1055,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'cohabitation',
     type: 'event',
-    year: character.birthYear + 32,
-    age: 32,
+    year: character.birthYear + outcomeAge,
+    age: outcomeAge,
     title: 'Shared Life',
     description: `${character.name} and their partner grow together through ordinary days, financial planning, and difficult conversations that slowly build trust.`,
     nextNodeIds: ['family-decision'],
@@ -1058,11 +1069,11 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'family-decision',
     type: 'decision',
-    year: character.birthYear + 35,
-    age: 35,
+    year: character.birthYear + familyAge,
+    age: familyAge,
     title: 'Family Planning',
-    description: `At 35, long-term values become concrete choices. Family, legacy, freedom, and stability all have different costs.`,
-      choices: [
+    description: `Long-term values become concrete choices. Family, legacy, freedom, and stability all have different costs.`,
+    choices: [
       {
         id: 'have-children',
         text: 'Have Children',
@@ -1096,8 +1107,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'parent-path',
     type: 'event',
-    year: character.birthYear + 37,
-    age: 37,
+    year: character.birthYear + familyPath1,
+    age: familyPath1,
     title: 'The Early Years',
     description: `${character.name} learns to live inside constant tradeoffs: sleep for care, ambition for presence, certainty for love. The household grows louder and more meaningful.`,
     nextNodeIds: ['parent-event'],
@@ -1110,8 +1121,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'parent-event',
     type: 'event',
-    year: character.birthYear + 39,
-    age: 39,
+    year: character.birthYear + familyPath2,
+    age: familyPath2,
     title: 'School Decisions',
     description: `The kids are older now. Navigating ${profile.city}'s education system becomes a second job. Friendships shift toward other parents out of sheer logistical necessity.`,
     nextNodeIds: ['midlife-crisis'],
@@ -1124,8 +1135,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'childless-path',
     type: 'event',
-    year: character.birthYear + 37,
-    age: 37,
+    year: character.birthYear + familyPath1,
+    age: familyPath1,
     title: 'Focusing Inward',
     description: `${character.name} invests in friendships, travel, and mastery. Life remains flexible, and meaning is built through projects, community, and chosen rituals.`,
     nextNodeIds: ['childless-event'],
@@ -1138,8 +1149,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'childless-event',
     type: 'event',
-    year: character.birthYear + 39,
-    age: 39,
+    year: character.birthYear + familyPath2,
+    age: familyPath2,
     title: 'The Great Consolidation',
     description: `Without the forced structure of school routines, ${character.name} realizes the necessity of designing a life intentionally. A new, demanding hobby or community role takes the center of gravity.`,
     nextNodeIds: ['midlife-crisis'],
@@ -1152,8 +1163,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'adoption-path',
     type: 'event',
-    year: character.birthYear + 37,
-    age: 37,
+    year: character.birthYear + familyPath1,
+    age: familyPath1,
     title: 'The Long Wait',
     description: `The adoption process in ${profile.city} is bureaucratic, expensive, and emotionally exhausting. Entire years feel defined by paperwork and anticipation.`,
     nextNodeIds: ['adoption-event'],
@@ -1166,8 +1177,8 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
   nodes.push({
     id: 'adoption-event',
     type: 'event',
-    year: character.birthYear + 39,
-    age: 39,
+    year: character.birthYear + familyPath2,
+    age: familyPath2,
     title: 'A Family Found',
     description: `${character.name} finally builds family. The transition is profound. Learning patience, advocacy, and unconditional care in these early years reshapes identity permanently.`,
     nextNodeIds: ['midlife-crisis'],
@@ -1296,10 +1307,10 @@ function generateMidlifeNodes(character: Character, profile: CityProfile): Story
   nodes.push({
     id: 'late-40s-fork',
     type: 'decision',
-    year: character.birthYear + 48,
-    age: 48,
+    year: character.birthYear + 53,
+    age: 53,
     title: 'The Second Half',
-    description: `Approaching 50, the math changes. There are probably fewer years ahead than behind. The body has delivered its invoice. ${character.name} must decide what the remaining fuel should be spent on.`,
+    description: `Past 50, the math changes. There are probably fewer years ahead than behind. The body has delivered its invoice. ${character.name} must decide what the remaining fuel should be spent on.`,
     choices: [
       {
         id: 'fork-give-back',
