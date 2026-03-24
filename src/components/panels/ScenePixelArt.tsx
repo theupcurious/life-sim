@@ -53,8 +53,7 @@ const SKY_STOPS: { age: number; top: string; bottom: string }[] = [
 
 const SCENE_HEIGHT = 54;
 const SEGMENT_WIDTH = 96;
-const SEGMENT_COUNT = 3;
-const SCENE_WIDTH = SEGMENT_WIDTH * SEGMENT_COUNT;
+const SCENE_WIDTH = SEGMENT_WIDTH * 3;
 
 function getSkyColors(age: number) {
   if (age <= SKY_STOPS[0].age) return { top: SKY_STOPS[0].top, bottom: SKY_STOPS[0].bottom };
@@ -76,7 +75,7 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
   const sceneId = useId().replace(/:/g, '');
   const profile = getCityProfile(birthplace);
 
-  const { stars, particles, clouds, trees, groundType } = useMemo(() => {
+  const { stars, particles, clouds, trees, groundType, sideStructures, ridgeHeights } = useMemo(() => {
     const rng = mulberry32(hashString(`${birthplace}-${node.id}-${node.year}-${node.type}`));
 
     const generatedStars = Array.from({ length: 30 }, () => ({
@@ -114,12 +113,46 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
 
     const gType = rng() > 0.6 ? 'grass' : 'pavement';
 
+    const structureZones = [
+      { start: 6, end: 74, count: 3 },
+      { start: SCENE_WIDTH - 74, end: SCENE_WIDTH - 6, count: 3 },
+    ];
+
+    const generatedSideStructures = structureZones.flatMap((zone, zoneIndex) =>
+      Array.from({ length: zone.count }, (_, i) => {
+        const width = 10 + Math.floor(rng() * 18);
+        const x = Math.floor(
+          zone.start
+          + ((zone.end - zone.start - width) * (i + 0.2 + rng() * 0.35)) / zone.count,
+        );
+        const height = 10 + Math.floor(rng() * 16);
+        const layer = rng() > 0.55 ? 'front' : 'back';
+        const roof = rng() > 0.7 ? 'flat' : rng() > 0.4 ? 'step' : 'slant';
+        return {
+          x,
+          width,
+          height,
+          layer,
+          roof,
+          key: `side-${zoneIndex}-${i}`,
+        };
+      }),
+    );
+
+    const ridgeCount = 7;
+    const generatedRidges = Array.from({ length: ridgeCount }, (_, i) => ({
+      x: Math.round((SCENE_WIDTH / (ridgeCount - 1)) * i),
+      y: 38 + Math.floor(rng() * 5) - (i % 2 === 0 ? 2 : 0),
+    }));
+
     return {
       stars: generatedStars,
       particles: generatedParticles,
       clouds: generatedClouds,
       trees: generatedTrees,
       groundType: gType,
+      sideStructures: generatedSideStructures,
+      ridgeHeights: generatedRidges,
     };
   }, [birthplace, node.id, node.year, node.type]);
 
@@ -448,6 +481,65 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
     );
   };
 
+  const renderSidePanorama = () => {
+    const backgroundFill = profile.palette.skylineLight;
+    const foregroundFill = profile.palette.skylineDark;
+    const ridgePath = ridgeHeights
+      .map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`)
+      .join(' ');
+
+    return (
+      <g>
+        <path
+          d={`${ridgePath} L${SCENE_WIDTH},42 L0,42 Z`}
+          fill={backgroundFill}
+          opacity="0.3"
+        />
+        {sideStructures.map((structure) => {
+          const fill = structure.layer === 'front' ? foregroundFill : backgroundFill;
+          const opacity = structure.layer === 'front' ? 0.92 : 0.6;
+          const baseY = 42;
+          const topY = baseY - structure.height;
+
+          if (structure.roof === 'slant') {
+            return (
+              <path
+                key={structure.key}
+                d={`M${structure.x},${baseY} L${structure.x},${topY + 4} L${structure.x + structure.width},${topY} L${structure.x + structure.width},${baseY} Z`}
+                fill={fill}
+                opacity={opacity}
+              />
+            );
+          }
+
+          if (structure.roof === 'step') {
+            const stepWidth = Math.max(4, Math.floor(structure.width / 3));
+            return (
+              <path
+                key={structure.key}
+                d={`M${structure.x},${baseY} L${structure.x},${topY + 8} L${structure.x + stepWidth},${topY + 8} L${structure.x + stepWidth},${topY + 3} L${structure.x + stepWidth * 2},${topY + 3} L${structure.x + stepWidth * 2},${topY} L${structure.x + structure.width},${topY} L${structure.x + structure.width},${baseY} Z`}
+                fill={fill}
+                opacity={opacity}
+              />
+            );
+          }
+
+          return (
+            <rect
+              key={structure.key}
+              x={structure.x}
+              y={topY}
+              width={structure.width}
+              height={structure.height}
+              fill={fill}
+              opacity={opacity}
+            />
+          );
+        })}
+      </g>
+    );
+  };
+
   const skyGradientId = `scene-sky-${sceneId}`;
   const windowsPatternId = `night-windows-pattern-${sceneId}`;
 
@@ -530,18 +622,18 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
           </g>
         ))}
 
-      {Array.from({ length: SEGMENT_COUNT }).map((_, idx) => (
-        <g key={`skyline-segment-${idx}`} transform={`translate(${idx * SEGMENT_WIDTH},0)`}>
-          <CitySkyline
-            city={profile.city}
-            foregroundColor={profile.palette.skylineDark}
-            backgroundColor={profile.palette.skylineLight}
-            isNight={isNight}
-            windowsPatternId={windowsPatternId}
-            maskIdSuffix={`${sceneId}-${idx}`}
-          />
-        </g>
-      ))}
+      {renderSidePanorama()}
+
+      <g transform={`translate(${SEGMENT_WIDTH},0)`}>
+        <CitySkyline
+          city={profile.city}
+          foregroundColor={profile.palette.skylineDark}
+          backgroundColor={profile.palette.skylineLight}
+          isNight={isNight}
+          windowsPatternId={windowsPatternId}
+          maskIdSuffix={`${sceneId}-hero`}
+        />
+      </g>
 
       {renderGround()}
       {renderForeground()}
