@@ -1,3 +1,11 @@
+import type {
+  CareerArc,
+  ChapterPool,
+  CityGameplayModifiers,
+  LifeTag,
+  LifeValue,
+} from '@/types/replayability'
+
 export const SUPPORTED_CITIES = [
   'Tokyo',
   'Beijing',
@@ -38,7 +46,20 @@ export interface CityProfile {
     neon: string;
     accent: string;
   };
+  gameplay: CityGameplayModifiers;
 }
+
+const createGameplayProfile = (overrides: {
+  dominantIndustries: CityGameplayModifiers['dominantIndustries'];
+  costPressure: CityGameplayModifiers['costPressure'];
+  familyPressure: CityGameplayModifiers['familyPressure'];
+  socialMobility: CityGameplayModifiers['socialMobility'];
+  riskAppetite: CityGameplayModifiers['riskAppetite'];
+  exclusiveChapterPools: ChapterPool[];
+  favoredCareerArcs: CareerArc[];
+  favoredValues: LifeValue[];
+  startingTags: LifeTag[];
+}): CityGameplayModifiers => overrides
 
 export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
   Tokyo: {
@@ -60,6 +81,17 @@ export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
       neon: '#22d3ee',
       accent: '#f97316',
     },
+    gameplay: createGameplayProfile({
+      dominantIndustries: ['technology', 'public-service', 'academia'],
+      costPressure: 'high',
+      familyPressure: 'high',
+      socialMobility: 'connected',
+      riskAppetite: 'conservative',
+      exclusiveChapterPools: ['institutional-prestige', 'quiet-rooted-life'],
+      favoredCareerArcs: ['corporate-climb', 'stable-craft', 'public-service'],
+      favoredValues: ['stability', 'service', 'belonging'],
+      startingTags: ['quiet-stability', 'institutional-trust'],
+    }),
   },
   Beijing: {
     city: 'Beijing',
@@ -80,6 +112,17 @@ export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
       neon: '#f59e0b',
       accent: '#ef4444',
     },
+    gameplay: createGameplayProfile({
+      dominantIndustries: ['technology', 'public-service', 'academia'],
+      costPressure: 'high',
+      familyPressure: 'intense',
+      socialMobility: 'connected',
+      riskAppetite: 'balanced',
+      exclusiveChapterPools: ['family-duty', 'institutional-prestige'],
+      favoredCareerArcs: ['corporate-climb', 'public-service', 'stable-craft'],
+      favoredValues: ['achievement', 'status', 'belonging'],
+      startingTags: ['academic-track', 'family-duty', 'status-driven'],
+    }),
   },
   Shanghai: {
     city: 'Shanghai',
@@ -100,6 +143,17 @@ export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
       neon: '#38bdf8',
       accent: '#a855f7',
     },
+    gameplay: createGameplayProfile({
+      dominantIndustries: ['finance', 'technology', 'trade-logistics'],
+      costPressure: 'high',
+      familyPressure: 'high',
+      socialMobility: 'global-hub',
+      riskAppetite: 'balanced',
+      exclusiveChapterPools: ['global-finance', 'high-ambition-urban-climb'],
+      favoredCareerArcs: ['corporate-climb', 'founder-volatility', 'stable-craft'],
+      favoredValues: ['achievement', 'status', 'stability'],
+      startingTags: ['social-mobility', 'status-driven'],
+    }),
   },
   'New York': {
     city: 'New York',
@@ -120,6 +174,17 @@ export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
       neon: '#f97316',
       accent: '#22d3ee',
     },
+    gameplay: createGameplayProfile({
+      dominantIndustries: ['finance', 'media', 'technology'],
+      costPressure: 'intense',
+      familyPressure: 'moderate',
+      socialMobility: 'global-hub',
+      riskAppetite: 'aggressive',
+      exclusiveChapterPools: ['chosen-family-network', 'high-ambition-urban-climb'],
+      favoredCareerArcs: ['corporate-climb', 'creative-precarity', 'founder-volatility'],
+      favoredValues: ['achievement', 'freedom', 'status'],
+      startingTags: ['outsider-energy', 'social-mobility'],
+    }),
   },
   'San Francisco': {
     city: 'San Francisco',
@@ -140,6 +205,17 @@ export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
       neon: '#fb7185',
       accent: '#f97316',
     },
+    gameplay: createGameplayProfile({
+      dominantIndustries: ['technology', 'entrepreneurship', 'arts'],
+      costPressure: 'intense',
+      familyPressure: 'moderate',
+      socialMobility: 'global-hub',
+      riskAppetite: 'aggressive',
+      exclusiveChapterPools: ['startup-volatility', 'arts-underground'],
+      favoredCareerArcs: ['founder-volatility', 'creative-precarity', 'corporate-climb'],
+      favoredValues: ['freedom', 'creativity', 'achievement'],
+      startingTags: ['creative-identity', 'risk-seeking'],
+    }),
   },
   Toronto: {
     city: 'Toronto',
@@ -160,6 +236,17 @@ export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
       neon: '#38bdf8',
       accent: '#fbbf24',
     },
+    gameplay: createGameplayProfile({
+      dominantIndustries: ['finance', 'media', 'technology'],
+      costPressure: 'high',
+      familyPressure: 'moderate',
+      socialMobility: 'connected',
+      riskAppetite: 'balanced',
+      exclusiveChapterPools: ['quiet-rooted-life', 'public-service'],
+      favoredCareerArcs: ['stable-craft', 'public-service', 'corporate-climb'],
+      favoredValues: ['belonging', 'stability', 'service'],
+      startingTags: ['community-anchor', 'quiet-stability'],
+    }),
   },
   Singapore: {
     city: 'Singapore',
@@ -180,6 +267,17 @@ export const CITY_PROFILES: Record<SupportedCity, CityProfile> = {
       neon: '#2dd4bf',
       accent: '#facc15',
     },
+    gameplay: createGameplayProfile({
+      dominantIndustries: ['finance', 'technology', 'trade-logistics'],
+      costPressure: 'high',
+      familyPressure: 'high',
+      socialMobility: 'global-hub',
+      riskAppetite: 'balanced',
+      exclusiveChapterPools: ['global-finance', 'public-service'],
+      favoredCareerArcs: ['corporate-climb', 'public-service', 'stable-craft'],
+      favoredValues: ['stability', 'achievement', 'service'],
+      startingTags: ['institutional-trust', 'worldly'],
+    }),
   },
 };
 
@@ -195,3 +293,6 @@ export function getCityProfile(city: string): CityProfile {
   return CITY_PROFILES.Tokyo;
 }
 
+export function getCityGameplayProfile(city: string): CityGameplayModifiers {
+  return getCityProfile(city).gameplay
+}

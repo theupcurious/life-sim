@@ -1,11 +1,119 @@
 import { create } from 'zustand';
 import type { StoryNode, GameState, Character, CharacterInput, GameView } from '@/types/game';
-import { generateLifeStory, generateConnections, generateRandomCharacter } from '@/data/storyGenerator';
+import * as storyGenerator from '@/data/storyGenerator';
+import { getCityGameplayProfile } from '@/data/cityProfiles';
+
+type LocalLifeArc =
+  | 'elite-academic'
+  | 'practical-work'
+  | 'creative-self-made'
+  | 'restless-explorer'
+  | 'corporate-climb'
+  | 'creative-precarity'
+  | 'founder-volatility'
+  | 'stable-craft'
+  | 'public-service'
+  | 'early-family'
+  | 'independent'
+  | 'late-commitment'
+  | 'serial-reinvention'
+  | 'chosen-family'
+  | 'caregiver'
+  | 'provider'
+  | 'estranged'
+  | 'childfree'
+  | 'multigenerational'
+  | 'resilient'
+  | 'neglected'
+  | 'recovery'
+  | 'disciplined'
+  | 'rooted'
+  | 'migrant'
+  | 'global-opportunist';
+
+type LocalLifeState = {
+  city: string;
+  educationArc?: LocalLifeArc;
+  careerArc?: LocalLifeArc;
+  relationshipArc?: LocalLifeArc;
+  familyArc?: LocalLifeArc;
+  healthArc?: LocalLifeArc;
+  mobilityArc?: LocalLifeArc;
+  values: string[];
+  tags: string[];
+  delayedConsequences: LocalDelayedConsequence[];
+  resolvedConsequences: LocalDelayedConsequence[];
+  unlockedChapterPools: string[];
+  blockedChapterPools: string[];
+  choiceHistory: string[];
+};
+
+type GameLifeState = GameState extends { lifeState: infer T } ? T : LocalLifeState;
+
+type LocalDelayedConsequence = {
+  id: string;
+  sourceNodeId: string;
+  sourceChoiceId: string;
+  createdAtAge: number;
+  resolveAtAge: number;
+  status: 'queued' | 'resolved';
+  tags: string[];
+};
+
+type ChoiceEffectExtension = {
+  educationArc?: LocalLifeArc;
+  careerArc?: LocalLifeArc;
+  relationshipArc?: LocalLifeArc;
+  familyArc?: LocalLifeArc;
+  healthArc?: LocalLifeArc;
+  mobilityArc?: LocalLifeArc;
+  tags?: string[];
+  values?: string[];
+  unlockedChapterPools?: string[];
+  blockedChapterPools?: string[];
+  lifeState?: Partial<LocalLifeState>;
+  arcs?: Partial<Pick<LocalLifeState, 'educationArc' | 'careerArc' | 'relationshipArc' | 'familyArc' | 'healthArc' | 'mobilityArc'>>;
+  addTags?: string[];
+  removeTags?: string[];
+  addValues?: string[];
+  removeValues?: string[];
+  addUnlockedChapterPools?: string[];
+  addBlockedChapterPools?: string[];
+  clearBlockedChapterPools?: string[];
+  delayedConsequences?: Array<string | Partial<LocalDelayedConsequence>>;
+  resolveConsequences?: string[];
+};
+
+type StoryGeneratorRuntime = typeof storyGenerator & {
+  generateInitialLifeStory?: (character: Character) => StoryNode[] | { nodes?: StoryNode[] };
+  generateNextChapter?: (context: {
+    character: Character;
+    lifeState: GameLifeState;
+    nodes: StoryNode[];
+    currentNodeId: string;
+    previousNodeId?: string;
+    choiceId?: string;
+    visitedNodeIds: string[];
+    madeDecisions: Record<string, string>;
+  }) => StoryNode[] | { nodes?: StoryNode[] };
+};
+
+type ChapterGenerationContext = {
+  character: Character;
+  lifeState: GameLifeState;
+  nodes: StoryNode[];
+  currentNodeId: string;
+  previousNodeId?: string;
+  choiceId?: string;
+  visitedNodes: Set<string>;
+  madeDecisions: Map<string, string>;
+};
 
 interface GameStore extends GameState {
   currentView: GameView;
   nodes: StoryNode[];
   connections: { from: string; to: string }[];
+  lifeState: GameLifeState;
   
   // Actions
   startGame: () => void;
@@ -57,6 +165,345 @@ const createCharacterFromInput = (input: CharacterInput): Character => {
   };
 };
 
+const clampStat = (value: number) => Math.max(0, Math.min(5, value));
+
+const uniqueStrings = (items: string[]) => [...new Set(items.filter(Boolean))];
+
+const getDreamValue = (dream?: string): string[] => {
+  if (!dream) return [];
+  const dreamValues: Record<string, string[]> = {
+    fame: ['recognition', 'status'],
+    wealth: ['security', 'ambition'],
+    happiness: ['joy', 'balance'],
+    knowledge: ['curiosity', 'mastery'],
+    freedom: ['autonomy', 'exploration'],
+    peace: ['stability', 'calm'],
+    love: ['connection', 'care'],
+    power: ['influence', 'control'],
+  };
+  return dreamValues[dream] ?? [dream];
+};
+
+const createInitialLifeState = (character: Character): GameLifeState => {
+  const cityGameplay = character.birthplace ? getCityGameplayProfile(character.birthplace) : null;
+  const tags = uniqueStrings([
+    ...character.personality,
+    ...character.skills.map((skill) => `skill:${skill}`),
+    ...(cityGameplay?.startingTags ?? []),
+    `city:${character.birthplace}`,
+    character.childhoodDream ? `dream:${character.childhoodDream}` : '',
+  ]);
+  const values = uniqueStrings([
+    ...getDreamValue(character.childhoodDream),
+    ...(cityGameplay?.favoredValues ?? []),
+    ...(character.personality.includes('empathetic') ? ['care'] : []),
+    ...(character.personality.includes('ambitious') ? ['achievement'] : []),
+    ...(character.personality.includes('adventurous') ? ['novelty'] : []),
+    ...(character.personality.includes('cautious') ? ['security'] : []),
+  ]);
+
+  const lifeState: LocalLifeState = {
+    city: character.birthplace,
+    educationArc: character.personality.includes('analytical') ? 'elite-academic'
+      : character.personality.includes('creative') ? 'creative-self-made'
+        : character.personality.includes('adventurous') ? 'restless-explorer'
+          : 'practical-work',
+    careerArc: character.personality.includes('ambitious') ? 'corporate-climb'
+      : character.personality.includes('creative') ? 'creative-precarity'
+        : character.personality.includes('empathetic') ? 'public-service'
+          : 'stable-craft',
+    relationshipArc: character.personality.includes('outgoing') ? 'late-commitment'
+      : character.personality.includes('empathetic') ? 'chosen-family'
+        : 'independent',
+    familyArc: character.personality.includes('empathetic') ? 'caregiver' : 'provider',
+    healthArc: 'resilient',
+    mobilityArc: character.personality.includes('adventurous') ? 'global-opportunist' : 'rooted',
+    values,
+    tags,
+    delayedConsequences: [],
+    resolvedConsequences: [],
+    unlockedChapterPools: uniqueStrings([
+      character.birthplace.toLowerCase().replace(/\s+/g, '-'),
+      ...(cityGameplay?.exclusiveChapterPools ?? []),
+      ...character.personality.map((trait) => `trait:${trait}`),
+    ]),
+    blockedChapterPools: [],
+    choiceHistory: [],
+  };
+
+  return lifeState as GameLifeState;
+};
+
+const getChoiceEffectExtension = (choice: NonNullable<StoryNode['choices']>[number]): ChoiceEffectExtension => {
+  return choice.effects as typeof choice.effects & ChoiceEffectExtension;
+};
+
+const toQueuedConsequence = (
+  item: string | Partial<LocalDelayedConsequence>,
+  currentNodeId: string,
+  choiceId: string,
+  currentAge: number,
+): LocalDelayedConsequence => {
+  if (typeof item === 'string') {
+    return {
+      id: item,
+      sourceNodeId: currentNodeId,
+      sourceChoiceId: choiceId,
+      createdAtAge: currentAge,
+      resolveAtAge: currentAge + 10,
+      status: 'queued',
+      tags: [],
+    };
+  }
+
+  return {
+    id: item.id ?? `${currentNodeId}:${choiceId}:${currentAge}`,
+    sourceNodeId: item.sourceNodeId ?? currentNodeId,
+    sourceChoiceId: item.sourceChoiceId ?? choiceId,
+    createdAtAge: item.createdAtAge ?? currentAge,
+    resolveAtAge: item.resolveAtAge ?? currentAge + 10,
+    status: 'queued',
+    tags: item.tags ?? [],
+  };
+};
+
+const updateLifeStateFromChoice = (
+  lifeState: GameLifeState,
+  currentNodeId: string,
+  choiceId: string,
+  currentAge: number,
+  nextAge: number,
+  choice: NonNullable<StoryNode['choices']>[number],
+): GameLifeState => {
+  const current = lifeState as LocalLifeState;
+  const effects = getChoiceEffectExtension(choice);
+  const nextLifeState: LocalLifeState = {
+    ...current,
+    delayedConsequences: [...current.delayedConsequences],
+    resolvedConsequences: [...current.resolvedConsequences],
+    values: [...current.values],
+    tags: [...current.tags],
+    unlockedChapterPools: [...current.unlockedChapterPools],
+    blockedChapterPools: [...current.blockedChapterPools],
+    choiceHistory: [...current.choiceHistory, choiceId],
+  };
+
+  if (effects.educationArc) nextLifeState.educationArc = effects.educationArc;
+  if (effects.careerArc) nextLifeState.careerArc = effects.careerArc;
+  if (effects.relationshipArc) nextLifeState.relationshipArc = effects.relationshipArc;
+  if (effects.familyArc) nextLifeState.familyArc = effects.familyArc;
+  if (effects.healthArc) nextLifeState.healthArc = effects.healthArc;
+  if (effects.mobilityArc) nextLifeState.mobilityArc = effects.mobilityArc;
+  if (effects.tags?.length) {
+    nextLifeState.tags = uniqueStrings([...nextLifeState.tags, ...effects.tags]);
+  }
+  if (effects.values?.length) {
+    nextLifeState.values = uniqueStrings([...nextLifeState.values, ...effects.values]);
+  }
+  if (effects.unlockedChapterPools?.length) {
+    nextLifeState.unlockedChapterPools = uniqueStrings([
+      ...nextLifeState.unlockedChapterPools,
+      ...effects.unlockedChapterPools,
+    ]);
+  }
+  if (effects.blockedChapterPools?.length) {
+    nextLifeState.blockedChapterPools = uniqueStrings([
+      ...nextLifeState.blockedChapterPools,
+      ...effects.blockedChapterPools,
+    ]);
+  }
+
+  if (effects.lifeState) {
+    Object.assign(nextLifeState, effects.lifeState);
+  }
+  if (effects.arcs) {
+    Object.assign(nextLifeState, effects.arcs);
+  }
+  if (effects.addTags?.length) {
+    nextLifeState.tags = uniqueStrings([...nextLifeState.tags, ...effects.addTags]);
+  }
+  if (effects.removeTags?.length) {
+    const removed = new Set(effects.removeTags);
+    nextLifeState.tags = nextLifeState.tags.filter((tag) => !removed.has(tag));
+  }
+  if (effects.addValues?.length) {
+    nextLifeState.values = uniqueStrings([...nextLifeState.values, ...effects.addValues]);
+  }
+  if (effects.removeValues?.length) {
+    const removed = new Set(effects.removeValues);
+    nextLifeState.values = nextLifeState.values.filter((value) => !removed.has(value));
+  }
+  if (effects.addUnlockedChapterPools?.length) {
+    nextLifeState.unlockedChapterPools = uniqueStrings([
+      ...nextLifeState.unlockedChapterPools,
+      ...effects.addUnlockedChapterPools,
+    ]);
+  }
+  if (effects.addBlockedChapterPools?.length) {
+    nextLifeState.blockedChapterPools = uniqueStrings([
+      ...nextLifeState.blockedChapterPools,
+      ...effects.addBlockedChapterPools,
+    ]);
+  }
+  if (effects.clearBlockedChapterPools?.length) {
+    const cleared = new Set(effects.clearBlockedChapterPools);
+    nextLifeState.blockedChapterPools = nextLifeState.blockedChapterPools.filter((pool) => !cleared.has(pool));
+  }
+  if (effects.delayedConsequences?.length) {
+    nextLifeState.delayedConsequences = [
+      ...nextLifeState.delayedConsequences,
+      ...effects.delayedConsequences.map((item) => toQueuedConsequence(item, currentNodeId, choiceId, currentAge)),
+    ];
+  }
+  if (effects.resolveConsequences?.length) {
+    const resolvedIds = new Set(effects.resolveConsequences);
+    const resolvedNow = nextLifeState.delayedConsequences
+      .filter((consequence) => resolvedIds.has(consequence.id))
+      .map((consequence) => ({ ...consequence, status: 'resolved' as const, resolveAtAge: nextAge }));
+    nextLifeState.resolvedConsequences = [...nextLifeState.resolvedConsequences, ...resolvedNow];
+    nextLifeState.delayedConsequences = nextLifeState.delayedConsequences
+      .filter((consequence) => !resolvedIds.has(consequence.id));
+  }
+
+  const ageResolved = nextLifeState.delayedConsequences
+    .filter((consequence) => consequence.resolveAtAge <= nextAge)
+    .map((consequence) => ({ ...consequence, status: 'resolved' as const }));
+  if (ageResolved.length > 0) {
+    nextLifeState.resolvedConsequences = [...nextLifeState.resolvedConsequences, ...ageResolved];
+    nextLifeState.delayedConsequences = nextLifeState.delayedConsequences
+      .filter((consequence) => consequence.resolveAtAge > nextAge);
+    nextLifeState.tags = uniqueStrings([
+      ...nextLifeState.tags,
+      ...ageResolved.flatMap((consequence) => consequence.tags),
+    ]);
+  }
+
+  return nextLifeState as GameLifeState;
+};
+
+const getStoryGeneratorRuntime = (): StoryGeneratorRuntime => (
+  storyGenerator as StoryGeneratorRuntime
+);
+
+const withLifeState = (character: Character, lifeState: GameLifeState): Character => (
+  { ...character, lifeState } as Character
+);
+
+const normalizeGeneratedNodes = (
+  segment: StoryNode[] | { nodes?: StoryNode[] } | undefined,
+): StoryNode[] => {
+  if (Array.isArray(segment)) return segment;
+  if (segment && Array.isArray(segment.nodes)) return segment.nodes;
+  return [];
+};
+
+const mergeChoices = (
+  current: StoryNode['choices'],
+  incoming: StoryNode['choices'],
+): StoryNode['choices'] => {
+  if (!current?.length) return incoming;
+  if (!incoming?.length) return current;
+
+  const byId = new Map(current.map((choice) => [choice.id, choice]));
+  for (const choice of incoming) {
+    byId.set(choice.id, choice);
+  }
+
+  return Array.from(byId.values());
+};
+
+const mergeNextNodeIds = (
+  current: StoryNode['nextNodeIds'],
+  incoming: StoryNode['nextNodeIds'],
+): StoryNode['nextNodeIds'] => {
+  if (!current?.length) return incoming;
+  if (!incoming?.length) return current;
+  return [...new Set([...current, ...incoming])];
+};
+
+const mergeNodesById = (existingNodes: StoryNode[], incomingNodes: StoryNode[]): StoryNode[] => {
+  if (incomingNodes.length === 0) return existingNodes;
+
+  const merged = new Map(existingNodes.map((node) => [node.id, node]));
+  for (const incoming of incomingNodes) {
+    const current = merged.get(incoming.id);
+    if (!current) {
+      merged.set(incoming.id, incoming);
+      continue;
+    }
+
+    merged.set(incoming.id, {
+      ...current,
+      ...incoming,
+      visited: current.visited || incoming.visited,
+      choices: mergeChoices(current.choices, incoming.choices),
+      nextNodeIds: mergeNextNodeIds(current.nextNodeIds, incoming.nextNodeIds),
+    });
+  }
+
+  return Array.from(merged.values());
+};
+
+const rebuildConnections = (nodes: StoryNode[]): { from: string; to: string }[] => (
+  storyGenerator.generateConnections(nodes)
+);
+
+const buildInitialGraph = (
+  character: Character,
+  lifeState: GameLifeState,
+): { nodes: StoryNode[]; connections: { from: string; to: string }[] } => {
+  const runtime = getStoryGeneratorRuntime();
+  const generatedNodes = normalizeGeneratedNodes(
+    runtime.generateInitialLifeStory?.(withLifeState(character, lifeState)),
+  );
+  const nodes = generatedNodes.length > 0
+    ? generatedNodes
+    : storyGenerator.generateLifeStory(withLifeState(character, lifeState));
+
+  return {
+    nodes,
+    connections: rebuildConnections(nodes),
+  };
+};
+
+const maybeGenerateNextChapter = (context: ChapterGenerationContext): StoryNode[] => {
+  const runtime = getStoryGeneratorRuntime();
+  if (!runtime.generateNextChapter) return [];
+
+  try {
+    return normalizeGeneratedNodes(runtime.generateNextChapter({
+      character: withLifeState(context.character, context.lifeState),
+      lifeState: context.lifeState,
+      nodes: context.nodes,
+      currentNodeId: context.currentNodeId,
+      previousNodeId: context.previousNodeId,
+      choiceId: context.choiceId,
+      visitedNodeIds: Array.from(context.visitedNodes),
+      madeDecisions: Object.fromEntries(context.madeDecisions),
+    }));
+  } catch {
+    return [];
+  }
+};
+
+const appendGeneratedChapter = (
+  nodes: StoryNode[],
+  generatedNodes: StoryNode[],
+): { nodes: StoryNode[]; connections: { from: string; to: string }[] } => {
+  if (generatedNodes.length === 0) {
+    return {
+      nodes,
+      connections: rebuildConnections(nodes),
+    };
+  }
+
+  const mergedNodes = mergeNodesById(nodes, generatedNodes);
+  return {
+    nodes: mergedNodes,
+    connections: rebuildConnections(mergedNodes),
+  };
+};
+
 const useGameStore = create<GameStore>((set, get) => ({
   // Initial state
   character: {
@@ -79,6 +526,20 @@ const useGameStore = create<GameStore>((set, get) => ({
   isReliveMode: false,
   gameStarted: false,
   gameEnded: false,
+  lifeState: createInitialLifeState({
+    name: '',
+    gender: 'female',
+    birthplace: '',
+    birthYear: 2000,
+    age: 0,
+    location: '',
+    occupation: '',
+    health: 5,
+    money: 1,
+    happiness: 3,
+    personality: [],
+    skills: [],
+  }),
   currentView: 'title',
   nodes: [],
   connections: [],
@@ -93,8 +554,8 @@ const useGameStore = create<GameStore>((set, get) => ({
   // Create character from user input
   createCharacter: (input: CharacterInput) => {
     const character = createCharacterFromInput(input);
-    const nodes = generateLifeStory(character);
-    const connections = generateConnections(nodes);
+    const lifeState = createInitialLifeState(character);
+    const { nodes, connections } = buildInitialGraph(character, lifeState);
 
     // Mark start as visited
     const visitedNodes = new Set(['start']);
@@ -110,6 +571,7 @@ const useGameStore = create<GameStore>((set, get) => ({
       currentNodeId: 'start',
       visitedNodes,
       madeDecisions: new Map(),
+      lifeState,
       isReliveMode: false,
       gameStarted: true,
       gameEnded: false,
@@ -119,9 +581,9 @@ const useGameStore = create<GameStore>((set, get) => ({
 
   // Create random character
   createRandomCharacter: () => {
-    const character = generateRandomCharacter();
-    const nodes = generateLifeStory(character);
-    const connections = generateConnections(nodes);
+    const character = storyGenerator.generateRandomCharacter();
+    const lifeState = createInitialLifeState(character);
+    const { nodes, connections } = buildInitialGraph(character, lifeState);
 
     const visitedNodes = new Set(['start']);
     const nodesWithVisited = nodes.map(n => ({
@@ -136,6 +598,7 @@ const useGameStore = create<GameStore>((set, get) => ({
       currentNodeId: 'start',
       visitedNodes,
       madeDecisions: new Map(),
+      lifeState,
       isReliveMode: false,
       gameStarted: true,
       gameEnded: false,
@@ -155,13 +618,13 @@ const useGameStore = create<GameStore>((set, get) => ({
     // Update character based on choice effects
     const newCharacter = { ...state.character };
     if (choice.effects.health !== undefined) {
-      newCharacter.health = Math.max(0, Math.min(5, newCharacter.health + choice.effects.health));
+      newCharacter.health = clampStat(newCharacter.health + choice.effects.health);
     }
     if (choice.effects.money !== undefined) {
-      newCharacter.money = Math.max(0, Math.min(5, newCharacter.money + choice.effects.money));
+      newCharacter.money = clampStat(newCharacter.money + choice.effects.money);
     }
     if (choice.effects.happiness !== undefined) {
-      newCharacter.happiness = Math.max(0, Math.min(5, newCharacter.happiness + choice.effects.happiness));
+      newCharacter.happiness = clampStat(newCharacter.happiness + choice.effects.happiness);
     }
     if (choice.effects.occupation) {
       newCharacter.occupation = choice.effects.occupation;
@@ -170,9 +633,29 @@ const useGameStore = create<GameStore>((set, get) => ({
       newCharacter.location = choice.effects.location;
     }
 
+    const prefetchedNodes = maybeGenerateNextChapter({
+      character: state.character,
+      lifeState: state.lifeState,
+      nodes: state.nodes,
+      currentNodeId: currentNode.id,
+      previousNodeId: state.currentNodeId,
+      choiceId: choice.id,
+      visitedNodes: state.visitedNodes,
+      madeDecisions: state.madeDecisions,
+    });
+    const prefetchedGraph = appendGeneratedChapter(state.nodes, prefetchedNodes);
+
     // Update age based on next node's year
-    const nextNode = state.getNodeById(choice.nextNodeId);
+    const nextNode = prefetchedGraph.nodes.find((node) => node.id === choice.nextNodeId);
     if (!nextNode) return;
+    const newLifeState = updateLifeStateFromChoice(
+      state.lifeState,
+      currentNode.id,
+      choice.id,
+      state.character.age,
+      nextNode.age,
+      choice,
+    );
     newCharacter.age = nextNode.age;
 
     // Record the decision
@@ -184,9 +667,20 @@ const useGameStore = create<GameStore>((set, get) => ({
     newVisitedNodes.add(choice.nextNodeId);
 
     // Update nodes array to mark as visited
-    const newNodes = state.nodes.map(n => 
+    const visitedGraphNodes = prefetchedGraph.nodes.map(n =>
       n.id === choice.nextNodeId ? { ...n, visited: true } : n
     );
+    const appendedNodes = maybeGenerateNextChapter({
+      character: newCharacter,
+      lifeState: newLifeState,
+      nodes: visitedGraphNodes,
+      currentNodeId: choice.nextNodeId,
+      previousNodeId: currentNode.id,
+      choiceId: choice.id,
+      visitedNodes: newVisitedNodes,
+      madeDecisions: newDecisions,
+    });
+    const appendedGraph = appendGeneratedChapter(visitedGraphNodes, appendedNodes);
 
     // Check if game ended
     const isEnd = nextNode.type === 'end';
@@ -196,7 +690,9 @@ const useGameStore = create<GameStore>((set, get) => ({
       currentNodeId: choice.nextNodeId,
       visitedNodes: newVisitedNodes,
       madeDecisions: newDecisions,
-      nodes: newNodes,
+      lifeState: newLifeState,
+      nodes: appendedGraph.nodes,
+      connections: appendedGraph.connections,
       gameEnded: isEnd,
       currentView: isEnd ? 'summary' : 'game',
     });
@@ -288,6 +784,20 @@ const useGameStore = create<GameStore>((set, get) => ({
       isReliveMode: false,
       gameStarted: false,
       gameEnded: false,
+      lifeState: createInitialLifeState({
+        name: '',
+        gender: 'female',
+        birthplace: '',
+        birthYear: 2000,
+        age: 0,
+        location: '',
+        occupation: '',
+        health: 5,
+        money: 1,
+        happiness: 3,
+        personality: [],
+        skills: [],
+      }),
       currentView: 'title',
       nodes: [],
       connections: [],

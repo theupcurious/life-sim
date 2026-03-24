@@ -1,3 +1,18 @@
+import type {
+  CareerArc,
+  ChapterPool,
+  ChoiceLifeStateEffects,
+  DelayedConsequence,
+  EducationArc,
+  FamilyArc,
+  HealthArc,
+  LifeTag,
+  LifeState as ReplayLifeState,
+  LifeValue,
+  MobilityArc,
+  RelationshipArc,
+} from '@/types/replayability'
+
 // Game Types for Life Simulation
 
 export type Character = {
@@ -31,18 +46,56 @@ export type StoryNode = {
   category: 'childhood' | 'education' | 'career' | 'relationship' | 'health' | 'random';
 }
 
+export type LifeArc =
+  | EducationArc
+  | CareerArc
+  | RelationshipArc
+  | FamilyArc
+  | HealthArc
+  | MobilityArc
+
+export type StructuredLifeState = ReplayLifeState<string>
+
+export type StoredLifeConsequence = {
+  id: string;
+  sourceNodeId?: string;
+  sourceChoiceId?: string;
+  createdAtAge?: number;
+  resolveAtAge?: number;
+  status?: 'queued' | 'resolved' | string;
+  tags?: Array<LifeTag | string>;
+}
+
+export type LifeState = {
+  city: string;
+  educationArc?: LifeArc;
+  careerArc?: LifeArc;
+  relationshipArc?: LifeArc;
+  familyArc?: LifeArc;
+  healthArc?: LifeArc;
+  mobilityArc?: LifeArc;
+  values: Array<LifeValue | string>;
+  tags: Array<LifeTag | string>;
+  delayedConsequences: Array<DelayedConsequence | StoredLifeConsequence>;
+  unlockedChapterPools: Array<ChapterPool | string>;
+  blockedChapterPools: Array<ChapterPool | string>;
+}
+
+export type ChoiceEffects = {
+  health?: number;
+  money?: number;
+  happiness?: number;
+  occupation?: string;
+  location?: string;
+  lifeState?: ChoiceLifeStateEffects<string>;
+}
+
 export type Choice = {
   id: string;
   text: string;
   description?: string;
   nextNodeId: string;
-  effects: {
-    health?: number;
-    money?: number;
-    happiness?: number;
-    occupation?: string;
-    location?: string;
-  };
+  effects: ChoiceEffects;
   /** Minimum stat values required to unlock this choice */
   requires?: {
     money?: number;
@@ -64,6 +117,7 @@ export type Connection = {
 
 export type GameState = {
   character: Character;
+  lifeState?: LifeState;
   currentNodeId: string;
   visitedNodes: Set<string>;
   madeDecisions: Map<string, string>;
@@ -82,3 +136,16 @@ export type CharacterInput = {
   personalityTraits: string[];
   childhoodDream: string;
 }
+
+export type {
+  CareerArc,
+  ChapterPool,
+  DelayedConsequence,
+  EducationArc,
+  FamilyArc,
+  HealthArc,
+  LifeTag,
+  LifeValue,
+  MobilityArc,
+  RelationshipArc,
+} from '@/types/replayability'

@@ -12,6 +12,7 @@ const GameScreen: React.FC = () => {
     character,
     nodes,
     connections,
+    lifeState,
     currentNodeId,
     visitedNodes,
     isReliveMode,
@@ -22,6 +23,7 @@ const GameScreen: React.FC = () => {
     getCurrentNode,
     getNextNodes,
   } = useGameStore();
+  const [showCausality, setShowCausality] = useState(false);
 
   const currentNode = getCurrentNode();
 
@@ -100,6 +102,9 @@ const GameScreen: React.FC = () => {
                   <InfoPanel
                     character={character}
                     currentNode={currentNode}
+                    causalityState={lifeState}
+                    showCausality={showCausality}
+                    onToggleCausality={() => setShowCausality((current) => !current)}
                     onChoice={handleChoice}
                     onNext={handleNext}
                     onRelive={handleRelive}

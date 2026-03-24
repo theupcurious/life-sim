@@ -4,6 +4,48 @@ import useGameStore from '@/store/gameStore';
 import { Heart, Coins, Smile, RotateCcw, Share2 } from 'lucide-react';
 import type { Character, StoryNode } from '@/types/game';
 
+const ARC_KEYS = [
+  'educationArc',
+  'careerArc',
+  'relationshipArc',
+  'familyArc',
+  'healthArc',
+  'mobilityArc',
+] as const;
+
+function prettifyTraceToken(value: string): string {
+  return value
+    .replace(/^trait:/, '')
+    .replace(/^city:/, '')
+    .replace(/^dream:/, '')
+    .replace(/^skill:/, '')
+    .replace(/-/g, ' ');
+}
+
+function getReplayabilitySnapshot(lifeState: unknown) {
+  const state = (lifeState && typeof lifeState === 'object')
+    ? lifeState as Record<string, unknown>
+    : {};
+
+  const arcs = ARC_KEYS
+    .map((key) => state[key])
+    .filter((value): value is string => typeof value === 'string' && value.length > 0);
+
+  const tags = Array.isArray(state.tags)
+    ? state.tags.filter((tag): tag is string => typeof tag === 'string').slice(-8).reverse()
+    : [];
+
+  const queuedConsequences = Array.isArray(state.delayedConsequences)
+    ? state.delayedConsequences.length
+    : 0;
+
+  const resolvedConsequences = Array.isArray(state.resolvedConsequences)
+    ? state.resolvedConsequences.length
+    : 0;
+
+  return { arcs, tags, queuedConsequences, resolvedConsequences };
+}
+
 function generateLifeSummary(
   character: Character,
   visitedNodeList: StoryNode[],
@@ -60,7 +102,7 @@ function generateLifeSummary(
 
 const SummaryScreen: React.FC = () => {
   const shareRef = useRef<HTMLButtonElement>(null);
-  const { character, visitedNodes, nodes, resetGame, enterReliveMode } = useGameStore();
+  const { character, lifeState, visitedNodes, nodes, resetGame, enterReliveMode } = useGameStore();
 
   const handleRelive = () => {
     enterReliveMode();
@@ -81,6 +123,7 @@ const SummaryScreen: React.FC = () => {
   // Calculate life quality score
   const lifeQuality = Math.round((character.health + character.money + character.happiness) / 3 * 20);
   const lifeSummary = generateLifeSummary(character, visitedNodeList, lifeQuality);
+  const replayability = getReplayabilitySnapshot(lifeState);
 
   const handleShare = async () => {
     const btn = shareRef.current;
@@ -295,6 +338,46 @@ const SummaryScreen: React.FC = () => {
               </div>
             </div>
           </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="border border-amber-400/25 bg-zinc-950/80 p-4 md:p-5 mb-4 md:mb-6"
+          >
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-xs text-amber-400 uppercase tracking-wider">Replayability Recap</p>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+                Queued {replayability.queuedConsequences} • Resolved {replayability.resolvedConsequences}
+              </p>
+            </div>
+            <p className="text-sm leading-relaxed text-zinc-300">
+              This run was shaped most strongly by{' '}
+              <span className="text-amber-300">
+                {replayability.arcs.slice(0, 2).map(prettifyTraceToken).join(' and ') || 'early formative choices'}
+              </span>.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {replayability.arcs.slice(0, 6).map((arc) => (
+                <span
+                  key={arc}
+                  className="border border-amber-400/25 bg-black/40 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-200"
+                >
+                  {prettifyTraceToken(arc)}
+                </span>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {replayability.tags.slice(0, 6).map((tag) => (
+                <span
+                  key={tag}
+                  className="border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-400"
+                >
+                  {prettifyTraceToken(tag)}
+                </span>
+              ))}
+            </div>
           </motion.div>
 
           {/* Life Path Statistics */}

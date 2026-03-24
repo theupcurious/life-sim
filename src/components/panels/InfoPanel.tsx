@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, StoryNode } from '@/types/game';
-import { Heart, Coins, Smile } from 'lucide-react';
+import { Heart, Coins, Smile, ChevronDown, ChevronUp } from 'lucide-react';
 import ScenePixelArt from './ScenePixelArt';
 
 interface InfoPanelProps {
   character: Character;
   currentNode: StoryNode | undefined;
+  causalityState?: unknown;
+  showCausality: boolean;
+  onToggleCausality: () => void;
   onChoice: (choiceId: string) => void;
   onNext: () => void;
   onRelive: () => void;
@@ -55,9 +58,55 @@ const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, spee
   );
 };
 
+const ARC_KEYS = [
+  'educationArc',
+  'careerArc',
+  'relationshipArc',
+  'familyArc',
+  'healthArc',
+  'mobilityArc',
+] as const;
+
+function prettifyTraceToken(value: string): string {
+  return value
+    .replace(/^trait:/, '')
+    .replace(/^city:/, '')
+    .replace(/^dream:/, '')
+    .replace(/^skill:/, '')
+    .replace(/-/g, ' ');
+}
+
+function getCausalitySnapshot(causalityState: unknown) {
+  const state = (causalityState && typeof causalityState === 'object')
+    ? causalityState as Record<string, unknown>
+    : {};
+
+  const arcs = ARC_KEYS
+    .map((key) => state[key])
+    .filter((value): value is string => typeof value === 'string' && value.length > 0)
+    .slice(0, 4);
+
+  const tags = Array.isArray(state.tags)
+    ? state.tags.filter((tag): tag is string => typeof tag === 'string').slice(-6).reverse()
+    : [];
+
+  const queuedConsequences = Array.isArray(state.delayedConsequences)
+    ? state.delayedConsequences.length
+    : 0;
+
+  const resolvedConsequences = Array.isArray(state.resolvedConsequences)
+    ? state.resolvedConsequences.length
+    : 0;
+
+  return { arcs, tags, queuedConsequences, resolvedConsequences };
+}
+
 const InfoPanel: React.FC<InfoPanelProps> = ({
   character,
   currentNode,
+  causalityState,
+  showCausality,
+  onToggleCausality,
   onChoice,
   onNext,
   onRelive,
@@ -133,6 +182,13 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   const showChoices = currentNode.type === 'decision'
     && !!currentNode.choices
     && revealedChoiceNodeId === currentNode.id;
+  const {
+    arcs,
+    tags,
+    queuedConsequences,
+    resolvedConsequences,
+  } = getCausalitySnapshot(causalityState);
+  const tracePill = arcs[0] ?? tags[0] ?? currentNode.category;
 
   return (
     <div className="info-panel h-full flex flex-col overflow-hidden">
@@ -202,12 +258,67 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         <ScenePixelArt node={currentNode} birthplace={character.birthplace} />
       </div>
 
-      <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.22em]">
-        <span className="text-zinc-500">{currentNode.year}</span>
-        {currentNode.category && (
-          <span className="text-amber-400">{currentNode.category}</span>
-        )}
+      <div className="mb-2 flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.22em]">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="shrink-0 text-zinc-500">{currentNode.year}</span>
+          {currentNode.category && (
+            <span className="shrink-0 text-amber-400">{currentNode.category}</span>
+          )}
+          <span className="truncate text-zinc-600">{prettifyTraceToken(tracePill)}</span>
+        </div>
+        <button
+          onClick={onToggleCausality}
+          className="inline-flex shrink-0 items-center gap-1 border border-white/15 px-2 py-1 text-[9px] tracking-[0.24em] text-zinc-400 transition-colors hover:border-amber-400/40 hover:text-zinc-100"
+        >
+          Trace
+          {showCausality ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </button>
       </div>
+
+      {showCausality && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="mb-2 shrink-0 border border-amber-400/20 bg-amber-400/5 px-3 py-2"
+        >
+          <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] uppercase tracking-[0.24em] text-zinc-500">
+            <span>Why This Branch</span>
+            <span className="text-zinc-600">Queued {queuedConsequences}</span>
+            <span className="text-zinc-600">Resolved {resolvedConsequences}</span>
+          </div>
+          <p className="text-[11px] leading-5 text-zinc-300">
+            This {currentNode.category} branch is currently being pulled by{' '}
+            <span className="text-amber-300">{prettifyTraceToken(tracePill)}</span>
+            {tags.length > 1 ? ` and ${prettifyTraceToken(tags[1])}` : ''}.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {arcs.map((arc) => (
+              <span
+                key={arc}
+                className="border border-amber-400/25 bg-black/30 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-200"
+              >
+                {prettifyTraceToken(arc)}
+              </span>
+            ))}
+            {arcs.length === 0 && (
+              <span className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+                No persistent arcs yet
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {tags.slice(0, 5).map((tag) => (
+              <span
+                key={tag}
+                className="border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-400"
+              >
+                {prettifyTraceToken(tag)}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Story + Actions */}
       <div className="flex-1 min-h-0 flex flex-col">

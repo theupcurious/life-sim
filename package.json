@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test:replayability": "node --experimental-strip-types src/data/replayabilityAssertions.ts",
+    "diagnose:replayability": "node --experimental-strip-types src/data/replayabilityDiagnostics.ts",
     "preview": "vite preview"
   },
   "dependencies": {
