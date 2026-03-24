@@ -29,7 +29,7 @@ const ConnectionLines: React.FC<ConnectionLinesProps> = ({
     <svg className="absolute inset-0 w-full h-full pointer-events-none">
       <defs>
         <marker id="arrow-taken" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L0,6 L7,3 z" fill="#fbbf24" />
+          <path d="M0,0 L0,6 L7,3 z" fill="#22d3ee" />
         </marker>
         <marker id="arrow-alternative" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L0,6 L7,3 z" fill="#3f3f46" />
@@ -37,7 +37,7 @@ const ConnectionLines: React.FC<ConnectionLinesProps> = ({
         <marker id="arrow-unexplored" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L0,6 L7,3 z" fill="#27272a" />
         </marker>
-        <filter id="glow-amber">
+        <filter id="glow-cyan">
           <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
           <feMerge>
             <feMergeNode in="coloredBlur"/>
@@ -66,19 +66,19 @@ const ConnectionLines: React.FC<ConnectionLinesProps> = ({
               y1={fromPos.y}
               x2={toPos.x}
               y2={toPos.y}
-              stroke={isActive ? '#fbbf24' : isAlternative ? '#3f3f46' : '#27272a'}
+              stroke={isActive ? '#22d3ee' : isAlternative ? '#3f3f46' : '#27272a'}
               strokeWidth={isActive ? 2 : 1}
               strokeDasharray={isAlternative ? '6,4' : 'none'}
               strokeOpacity={isActive ? 1 : isAlternative ? 0.6 : 0.3}
               markerEnd={isActive ? 'url(#arrow-taken)' : isAlternative ? 'url(#arrow-alternative)' : 'url(#arrow-unexplored)'}
-              filter={isActive ? 'url(#glow-amber)' : undefined}
+              filter={isActive ? 'url(#glow-cyan)' : undefined}
             />
             
             {/* Animated dot for active connections */}
             {isActive && (
               <motion.circle
                 r="3"
-                fill="#fbbf24"
+                fill="#22d3ee"
                 initial={{ 
                   cx: fromPos.x, 
                   cy: fromPos.y 

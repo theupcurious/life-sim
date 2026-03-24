@@ -27,10 +27,10 @@
     --ring: 43 96% 56%;
     --radius: 0;
 
-    /* Game specific colors */
-    --amber-glow: 43 96% 56%;
-    --gold: 43 96% 56%;
-    --heart: 0 70% 60%;
+    /* Premium Theme colors */
+    --neon-cyan: 191 97% 55%;  /* #22d3ee */
+    --neon-gold: 43 96% 56%;   /* #fbbf24 */
+    --glass-bg: 25 10% 4%;
   }
 }
 
@@ -79,12 +79,13 @@
   }
 
   .node-event.visited {
-    @apply border-zinc-500 bg-zinc-800 text-zinc-300;
+    @apply border-cyan-500/50 bg-cyan-950/40 text-cyan-100;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
   }
 
   .node-event.active {
     @apply border-amber-400 text-white;
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
   }
   
   .node-time {
@@ -92,12 +93,13 @@
   }
 
   .node-time.visited {
-    @apply border-zinc-500 text-zinc-300 opacity-80;
+    @apply border-cyan-500/50 text-cyan-200 opacity-80 bg-cyan-950/30;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
   }
   
   .node-time.active {
-    @apply border-amber-400 text-white opacity-100;
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    @apply border-amber-400 text-white opacity-100 bg-amber-950/30;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
   }
   
   .node-start, .node-end {
@@ -126,10 +128,10 @@
     background-size: 10px 2px;
   }
   
-  /* Info Panel */
+  /* Info Panel (Glassmorphism) */
   .info-panel {
-    @apply border-2 border-white bg-black/90 p-4 md:p-5;
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
+    @apply border border-white/10 backdrop-blur-md bg-black/60 p-4 md:p-5;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   }
   
   /* Stats Display */
@@ -138,7 +140,7 @@
   }
   
   .stat-heart {
-    @apply text-red-400;
+    @apply text-rose-500;
   }
   
   /* Typewriter Effect */
@@ -160,24 +162,36 @@
   
   /* Button Styles */
   .game-button {
-    @apply px-6 py-3 border-2 border-white bg-transparent text-white uppercase tracking-widest;
+    @apply px-6 py-3 border border-white/20 bg-white/5 text-white tracking-widest text-sm font-medium backdrop-blur-sm relative overflow-hidden;
     @apply transition-all duration-300;
   }
   
+  .game-button::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+
   .game-button:hover {
-    @apply bg-amber-400/20 border-amber-400;
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+    @apply bg-amber-400/20 border-amber-400/80 text-amber-300;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+  }
+
+  .game-button:hover::after {
+    transform: translateX(100%);
   }
   
   /* Choice Buttons */
   .choice-button {
-    @apply w-full p-4 border-2 border-white/50 bg-zinc-900/80 text-left;
+    @apply w-full p-4 border border-white/10 bg-black/40 backdrop-blur-md text-left relative overflow-hidden;
     @apply transition-all duration-300;
   }
   
   .choice-button:hover {
-    @apply border-amber-400 bg-amber-400/10;
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+    @apply border-amber-400/50 bg-amber-400/10;
+    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.15), inset 4px 0 0 rgba(251, 191, 36, 0.5);
+    transform: translateX(4px);
   }
   
   /* Relive Mode */
@@ -188,8 +202,8 @@
   
   .relive-mode .node-time.visited:hover,
   .relive-mode .node-event.visited:hover {
-    @apply border-amber-400;
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+    @apply border-cyan-400 text-cyan-300 bg-cyan-400/20 scale-110;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
   }
   
   /* Pixel Art Image Container */
@@ -231,6 +245,18 @@
   
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .glass-panel {
+    @apply bg-black/40 backdrop-blur-md border border-white/10;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .mesh-bg {
+    background-color: #0c0a09;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.1) 0px, transparent 50%);
   }
 }
 

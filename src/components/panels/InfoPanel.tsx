@@ -345,7 +345,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         </div>
         <button
           onClick={onToggleCausality}
-          className="inline-flex shrink-0 items-center gap-1 border border-white/15 px-2 py-1 text-[9px] tracking-[0.24em] text-zinc-400 transition-colors hover:border-amber-400/40 hover:text-zinc-100"
+          className="inline-flex shrink-0 items-center gap-1 border border-white/15 bg-white/5 backdrop-blur-sm px-2 py-1 text-[9px] tracking-[0.24em] text-zinc-400 transition-all hover:border-amber-400/60 hover:text-amber-300 hover:shadow-[0_0_10px_rgba(251,191,36,0.2)]"
         >
           Trace
           {showCausality ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -357,7 +357,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="mb-2 shrink-0 border border-amber-400/20 bg-amber-400/5 px-3 py-2"
+          className="mb-2 shrink-0 border border-amber-400/30 bg-amber-400/10 backdrop-blur-md shadow-[inset_0_0_15px_rgba(251,191,36,0.1)] px-3 py-2"
         >
           <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] uppercase tracking-[0.24em] text-zinc-500">
             <span>Why This Branch</span>
@@ -373,7 +373,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             {arcs.map((arc) => (
               <span
                 key={arc}
-                className="border border-amber-400/25 bg-black/30 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-200"
+                className="border border-amber-400/40 bg-amber-400/10 shadow-[0_0_10px_rgba(251,191,36,0.15)] px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-200"
               >
                 {prettifyTraceToken(arc)}
               </span>
@@ -401,7 +401,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
       <div className="flex-1 min-h-0 flex flex-col">
         {isDecisionNode ? (
           <div className="mt-1 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-4">
-            <div className="min-h-0 overflow-y-auto border border-white/10 bg-black/35 px-3 py-3 lg:px-4">
+            <div className="min-h-0 overflow-y-auto border border-white/10 bg-black/40 backdrop-blur-md px-3 py-3 lg:px-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentNode.id}
@@ -438,7 +438,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.18 }}
-                className="hidden min-h-0 overflow-y-auto border border-white/10 bg-black/40 px-2 py-2 sm:px-3 lg:block"
+                className="hidden min-h-0 overflow-y-auto border border-white/10 bg-black/40 backdrop-blur-md shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] px-2 py-2 sm:px-3 lg:block"
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">
@@ -523,7 +523,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             transition={{ delay: 0.3 }}
             className="mt-3 space-y-3 shrink-0"
           >
-            <div className="text-center py-4 border border-amber-400/50 bg-amber-400/10">
+            <div className="text-center py-4 border border-amber-400/50 bg-amber-400/10 backdrop-blur-sm shadow-[0_0_20px_rgba(251,191,36,0.2)]">
               <p className="text-amber-400 uppercase tracking-widest text-sm mb-2">
                 Life Complete
               </p>

@@ -13,25 +13,7 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
       className="fixed inset-0 overflow-y-auto"
       style={{ background: 'hsl(25, 10%, 4%)' }}
     >
-      {/* Subtle vignette radial gradient */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at 50% 40%, rgba(251,191,36,0.04) 0%, transparent 70%)',
-        }}
-      />
-
-      {/* Very subtle grid — far less intrusive than before */}
-      <div
-        className="fixed inset-0 opacity-[0.04] pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)
-          `,
-          backgroundSize: '80px 80px',
-        }}
-      />
+      <div className="fixed inset-0 mesh-bg opacity-60 pointer-events-none" />
 
       {/* Centering wrapper — min-h-full + flex so content is centered when it
           fits the viewport, and padding ensures breathing room when it scrolls */}
@@ -88,8 +70,7 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.6 }}
-          className="border border-white/10 mb-8"
-          style={{ background: 'rgba(255,255,255,0.03)' }}
+          className="glass-panel mb-8"
         >
           <div className="px-6 py-5 border-b border-white/10">
             <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 mb-3">
@@ -141,14 +122,10 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.75, duration: 0.6 }}
           onClick={onStart}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.02, boxShadow: '0 0 25px rgba(251,191,36,0.5)' }}
           whileTap={{ scale: 0.98 }}
-          className="w-full py-4 font-semibold text-sm uppercase tracking-[0.25em] transition-all"
-          style={{
-            background: '#fbbf24',
-            color: '#0c0a08',
-            fontFamily: "'Share Tech Mono', monospace",
-          }}
+          className="w-full py-4 font-semibold text-sm uppercase tracking-[0.25em] transition-all bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.2)]"
+          style={{ fontFamily: "'Share Tech Mono', monospace" }}
         >
           {language === 'en' ? 'Begin' : '旅を始める'}
         </motion.button>

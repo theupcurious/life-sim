@@ -218,15 +218,8 @@ const SummaryScreen: React.FC = () => {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] md:p-8">
-      {/* Background Effect */}
-      <div className="absolute inset-0 opacity-5">
-        <div 
-          className="w-full h-full"
-          style={{
-            backgroundImage: `radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.3) 0%, transparent 50%)`,
-          }}
-        />
-      </div>
+      {/* Background Mesh */}
+      <div className="absolute inset-0 mesh-bg opacity-40 pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -256,7 +249,7 @@ const SummaryScreen: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="border-2 border-amber-400/50 bg-amber-400/10 p-4 md:p-6 mb-4 md:mb-6 text-center"
+            className="border border-amber-400/40 bg-amber-400/10 backdrop-blur-md shadow-[0_0_20px_rgba(251,191,36,0.15)] p-4 md:p-6 mb-4 md:mb-6 text-center"
           >
             <p className="text-xs text-amber-400 uppercase tracking-wider mb-2">Life Quality Score</p>
             <p className="text-4xl md:text-5xl font-bold text-amber-400">{lifeQuality}%</p>
@@ -272,7 +265,7 @@ const SummaryScreen: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
+            className="glass-panel p-4 md:p-6 mb-4 md:mb-6"
           >
           <div className="grid grid-cols-2 gap-3 md:gap-6">
             <div>
@@ -344,7 +337,7 @@ const SummaryScreen: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="border border-amber-400/25 bg-zinc-950/80 p-4 md:p-5 mb-4 md:mb-6"
+            className="glass-panel p-4 md:p-5 mb-4 md:mb-6"
           >
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-xs text-amber-400 uppercase tracking-wider">Replayability Recap</p>
@@ -385,7 +378,7 @@ const SummaryScreen: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
+            className="glass-panel p-4 md:p-6 mb-4 md:mb-6"
           >
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4">Life Path Statistics</p>
           <div className="flex justify-between items-center mb-4">
@@ -408,7 +401,7 @@ const SummaryScreen: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-8"
+            className="glass-panel p-4 md:p-6 mb-4 md:mb-8"
           >
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4">Key Life Events</p>
           <div className="space-y-2 max-h-40 overflow-y-auto">

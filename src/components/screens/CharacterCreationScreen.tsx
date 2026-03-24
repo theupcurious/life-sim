@@ -95,8 +95,8 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                 value={input.name}
                 onChange={(e) => setInput(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter a name..."
-                className="w-full bg-zinc-900 border border-white/30 px-4 py-3 text-white
-                           placeholder-zinc-600 focus:border-amber-400 focus:outline-none transition-colors"
+                className="w-full bg-black/40 border border-white/20 px-4 py-3 text-white
+                           placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:shadow-[0_0_15px_rgba(251,191,36,0.2)] transition-all backdrop-blur-sm"
               />
             </div>
 
@@ -110,8 +110,8 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                     onClick={() => setInput(prev => ({ ...prev, gender }))}
                     className={`flex-1 py-3 border uppercase tracking-wider text-sm transition-all
                       ${input.gender === gender
-                        ? 'border-amber-400 bg-amber-400/20 text-amber-400'
-                        : 'border-white/30 text-zinc-400 hover:border-white/60'}`}
+                        ? 'border-amber-400 bg-amber-400/20 text-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.2)]'
+                        : 'border-white/20 bg-white/5 text-zinc-400 hover:border-amber-400/60 hover:text-white backdrop-blur-sm'}`}
                   >
                     {gender}
                   </button>
@@ -125,8 +125,8 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
               <select
                 value={input.birthplace}
                 onChange={(e) => setInput(prev => ({ ...prev, birthplace: e.target.value }))}
-                className="w-full bg-zinc-900 border border-white/30 px-4 py-3 text-white
-                           focus:border-amber-400 focus:outline-none appearance-none cursor-pointer"
+                className="w-full bg-black/40 border border-white/20 px-4 py-3 text-white
+                           focus:border-amber-400 focus:outline-none focus:shadow-[0_0_15px_rgba(251,191,36,0.2)] appearance-none cursor-pointer backdrop-blur-sm transition-all"
               >
                 {CITY_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -184,12 +184,12 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                     key={option.id}
                     onClick={() => handlePersonalityToggle(option.id)}
                     disabled={isBlocked}
-                    className={`p-3 border text-left transition-all relative ${
+                    className={`p-3 border text-left transition-all relative backdrop-blur-sm ${
                       isSelected
-                        ? 'border-amber-400 bg-amber-400/10'
+                        ? 'border-amber-400 bg-amber-400/20 shadow-[0_0_15px_rgba(251,191,36,0.2)]'
                         : isBlocked
-                          ? 'border-white/10 opacity-35 cursor-not-allowed'
-                          : 'border-white/30 hover:border-white/60'
+                          ? 'border-white/10 opacity-35 cursor-not-allowed bg-black/20'
+                          : 'border-white/20 bg-white/5 hover:border-amber-400/70 hover:bg-amber-400/5'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
@@ -239,10 +239,10 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
                 <button
                   key={dream.id}
                   onClick={() => setInput(prev => ({ ...prev, childhoodDream: dream.id }))}
-                  className={`w-full p-3 border text-left transition-all
+                  className={`w-full p-3 border text-left transition-all backdrop-blur-sm
                     ${input.childhoodDream === dream.id
-                      ? 'border-amber-400 bg-amber-400/10'
-                      : 'border-white/30 hover:border-white/60'}`}
+                      ? 'border-amber-400 bg-amber-400/20 shadow-[0_0_15px_rgba(251,191,36,0.2)]'
+                      : 'border-white/20 bg-white/5 hover:border-amber-400/70 hover:bg-amber-400/5'}`}
                 >
                   <div className={input.childhoodDream === dream.id ? 'text-amber-400 font-bold text-sm' : 'text-white text-sm'}>
                     {dream.label}
@@ -266,7 +266,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
           >
             <h2 className="text-2xl font-bold text-amber-400 mb-6">Ready to begin?</h2>
 
-            <div className="border border-white/30 bg-zinc-900/50 p-6 space-y-4">
+            <div className="glass-panel p-6 space-y-4">
               <div className="flex justify-between">
                 <span className="text-zinc-400">Name</span>
                 <span className="text-white">{input.name}</span>
@@ -305,18 +305,8 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] md:p-6">
-      {/* Background Grid */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <div
-          className="w-full h-full"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 255, 255, 0.3) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-          }}
-        />
+      {/* Background Mesh */}
+      <div className="absolute inset-0 mesh-bg opacity-40 pointer-events-none">
       </div>
 
       <motion.div
@@ -344,7 +334,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
         </div>
 
         {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto border border-white/30 bg-black/80 p-5 md:p-8">
+        <div className="min-h-0 flex-1 overflow-y-auto glass-panel p-5 md:p-8">
           {renderStep()}
         </div>
 
