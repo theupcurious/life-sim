@@ -816,7 +816,7 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
     category: 'education',
   });
 
-  // Unique diverging nodes before teenage-2
+  // Unique diverging nodes before age-17 payoff nodes
   nodes.push({
     id: 'teen-study-path',
     type: 'event',
@@ -824,7 +824,7 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
     age: 16,
     title: 'The Exam Grind',
     description: `${character.name} becomes known as the disciplined one — top of most class rankings, last to leave the library. The social cost is real: weekends spent studying, friendships that drift. But a growing academic identity starts to feel like armor.`,
-    nextNodeIds: ['teenage-2'],
+    nextNodeIds: ['teen-study-payoff'],
     imagePrompt: `pixel art student studying late at night in ${profile.city}`,
     position: { x: 0, y: 0 },
     visited: false,
@@ -838,7 +838,7 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
     age: 16,
     title: 'The Social Web',
     description: `${character.name} becomes a connector — the one who knows everyone, organizes events, navigates the politics of who belongs where. Grades are fine, not exceptional. What grows instead is an instinct for reading people that will outlast any grade.`,
-    nextNodeIds: ['teenage-2'],
+    nextNodeIds: ['teen-social-payoff'],
     imagePrompt: `pixel art teenage friends hanging out in ${profile.city}`,
     position: { x: 0, y: 0 },
     visited: false,
@@ -852,7 +852,7 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
     age: 16,
     title: 'Crossing Lines',
     description: `${character.name} pushes back against every expected path. A brush with school authority — a suspended week, a late-night incident — becomes a strange turning point. The confrontation forces a question: is this who ${character.name} actually wants to be, or just who ${character.name} is pretending to be?`,
-    nextNodeIds: ['teenage-2'],
+    nextNodeIds: ['teen-rebel-payoff'],
     imagePrompt: `pixel art teenage rebellion scene in ${profile.city}`,
     position: { x: 0, y: 0 },
     visited: false,
@@ -860,20 +860,63 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
   });
 
   const pop17 = ft.pop(profile.city, character.birthYear + 17);
+  const socialLeansRomantic = character.childhoodDream === 'love'
+    || character.personality.includes('outgoing')
+    || character.personality.includes('empathetic');
+
   nodes.push({
-    id: 'teenage-2',
+    id: 'teen-study-payoff',
     type: 'event',
     year: character.birthYear + 17,
     age: 17,
-    title: 'First Love',
+    title: 'Scholarship Window',
     description: [
-      generateFirstLoveStory(character.name, character.gender, profile),
+      `${character.name}'s consistent performance opens concrete doors: scholarship interviews, teacher recommendations, and the first sense that effort can materially change what comes next.`,
       pop17,
     ].filter(Boolean).join(' '),
-    imagePrompt: `pixel art teenage romance moment in ${profile.city}`,
+    nextNodeIds: ['education-decision'],
+    imagePrompt: `pixel art scholarship interview day in ${profile.city}`,
+    position: { x: 0, y: 0 },
+    visited: false,
+    category: 'education',
+  });
+
+  nodes.push({
+    id: 'teen-social-payoff',
+    type: 'event',
+    year: character.birthYear + 17,
+    age: 17,
+    title: socialLeansRomantic ? 'First Love' : 'Found My People',
+    description: [
+      socialLeansRomantic
+        ? generateFirstLoveStory(character.name, character.gender, profile)
+        : `${character.name} doesn't fall into romance this year, but finds something just as formative: a tight circle of friends who challenge, defend, and ground each other through every exam and family argument.`,
+      pop17,
+    ].filter(Boolean).join(' '),
+    nextNodeIds: ['education-decision'],
+    imagePrompt: socialLeansRomantic
+      ? `pixel art teenage romance moment in ${profile.city}`
+      : `pixel art close-knit teenage friend group in ${profile.city}`,
     position: { x: 0, y: 0 },
     visited: false,
     category: 'relationship',
+  });
+
+  nodes.push({
+    id: 'teen-rebel-payoff',
+    type: 'event',
+    year: character.birthYear + 17,
+    age: 17,
+    title: 'Consequences and Direction',
+    description: [
+      `${character.name} faces the bill for a year of pushing boundaries: tense family conversations, school scrutiny, and a smaller margin for error. At the same time, a clearer personal code starts forming from the fallout.`,
+      pop17,
+    ].filter(Boolean).join(' '),
+    nextNodeIds: ['education-decision'],
+    imagePrompt: `pixel art teenager outside school office at dusk in ${profile.city}`,
+    position: { x: 0, y: 0 },
+    visited: false,
+    category: 'health',
   });
 
   return nodes;
