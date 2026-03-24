@@ -96,6 +96,18 @@ type ReplayContext = {
   chapterPools: string[];
 };
 
+type EarlyLifeTimeline = {
+  teenDecisionAge: number;
+  teenPayoffAge: number;
+  educationDecisionAge: number;
+};
+
+type EducationBranchTimeline = {
+  startAge: number;
+  midpointAge: number;
+  decisionAge: number;
+};
+
 function replayEffects(
   base: Choice['effects'],
   extra: Record<string, unknown>,
@@ -279,6 +291,154 @@ function buildReplayContext(character: Character, profile: CityProfile): ReplayC
   };
 }
 
+function clampAge(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getEarlyLifeTimeline(character: Character, profile: CityProfile): EarlyLifeTimeline {
+  const context = buildReplayContext(character, profile);
+
+  const teenDecisionAge = clampAge(
+    context.familyPressure === 'high'
+      ? 14
+      : character.personality.includes('creative') || character.personality.includes('adventurous')
+        ? 16
+        : 15,
+    14,
+    16,
+  );
+
+  const educationDecisionAge = clampAge(
+    context.familyPressure === 'high'
+      ? 17
+      : character.personality.includes('adventurous') || character.childhoodDream === 'freedom'
+        ? 19
+        : character.personality.includes('creative') && !character.personality.includes('analytical')
+          ? 17
+          : character.personality.includes('analytical') || character.childhoodDream === 'knowledge'
+            ? 19
+            : 18,
+    teenDecisionAge + 2,
+    20,
+  );
+
+  return {
+    teenDecisionAge,
+    teenPayoffAge: teenDecisionAge + 1,
+    educationDecisionAge,
+  };
+}
+
+function getEducationBranchTimeline(
+  character: Character,
+  profile: CityProfile,
+  origin: EducationChoiceId,
+): EducationBranchTimeline {
+  const { educationDecisionAge } = getEarlyLifeTimeline(character, profile);
+
+  switch (origin) {
+    case 'choice-work':
+      return {
+        startAge: educationDecisionAge + 1,
+        midpointAge: educationDecisionAge + 3,
+        decisionAge: educationDecisionAge + 5,
+      };
+    case 'choice-art':
+      return {
+        startAge: educationDecisionAge + 1,
+        midpointAge: educationDecisionAge + 3,
+        decisionAge: educationDecisionAge + 5,
+      };
+    case 'choice-travel':
+      return {
+        startAge: educationDecisionAge + 2,
+        midpointAge: educationDecisionAge + 4,
+        decisionAge: educationDecisionAge + 6,
+      };
+    default:
+      return {
+        startAge: educationDecisionAge + 2,
+        midpointAge: educationDecisionAge + 4,
+        decisionAge: educationDecisionAge + 6,
+      };
+  }
+}
+
+function getFormalOccupation(character: Character, context: ReplayContext): string {
+  if (context.industries.includes('finance')) {
+    return character.skills.includes('business') || character.skills.includes('mathematics')
+      ? pick(['Investment Analyst', 'Strategy Lead', 'Portfolio Manager'])
+      : pick(['Banking Associate', 'Deal Advisor', 'Finance Manager']);
+  }
+  if (context.industries.includes('technology')) {
+    return character.skills.includes('technology') || character.skills.includes('mathematics')
+      ? pick(['Product Manager', 'Systems Architect', 'Data Lead'])
+      : pick(['Operations Director', 'Platform Lead', 'Program Manager']);
+  }
+  if (context.industries.includes('public-service') || context.industries.includes('academia')) {
+    return pick(['Policy Advisor', 'Research Fellow', 'Civil Service Officer']);
+  }
+  if (context.industries.includes('media')) {
+    return pick(['Producer', 'Editorial Director', 'Studio Executive']);
+  }
+  return pick(['Department Lead', 'Operations Head', 'Strategy Manager']);
+}
+
+function getStableOccupation(character: Character, context: ReplayContext): string {
+  if (character.personality.includes('empathetic') || character.skills.includes('counseling')) {
+    return pick(['Teacher', 'Counselor', 'Community Health Worker']);
+  }
+  if (character.skills.includes('technology') || character.skills.includes('mathematics')) {
+    return pick(['Systems Analyst', 'Urban Planner', 'Infrastructure Engineer']);
+  }
+  if (character.skills.includes('business')) {
+    return pick(['Operations Specialist', 'Project Coordinator', 'Procurement Lead']);
+  }
+  if (context.industries.includes('public-service')) {
+    return pick(['Case Manager', 'Program Officer', 'Transit Planner']);
+  }
+  return pick(['Administrator', 'Coordinator', 'Trusted Professional']);
+}
+
+function getCreativeOccupation(character: Character): string {
+  if (character.skills.includes('music')) {
+    return pick(['Music Producer', 'Composer', 'Sound Designer']);
+  }
+  if (character.skills.includes('writing')) {
+    return pick(['Screenwriter', 'Essayist', 'Narrative Designer']);
+  }
+  if (character.skills.includes('technology')) {
+    return pick(['Game Designer', 'Creative Technologist', 'Interactive Artist']);
+  }
+  return pick(['Illustrator', 'Art Director', 'Curator']);
+}
+
+function getEntrepreneurOccupation(character: Character, context: ReplayContext): string {
+  if (context.industries.includes('technology') || character.skills.includes('technology')) {
+    return pick(['Startup Founder', 'Product Founder', 'Tech Founder']);
+  }
+  if (character.skills.includes('art') || character.skills.includes('music') || character.skills.includes('writing')) {
+    return pick(['Studio Founder', 'Creative Agency Owner', 'Label Founder']);
+  }
+  if (context.industries.includes('trade-logistics')) {
+    return pick(['Import-Export Founder', 'Logistics Founder', 'Commerce Founder']);
+  }
+  return pick(['Business Owner', 'Company Founder', 'Independent Founder']);
+}
+
+function getGlobalOccupation(character: Character, context: ReplayContext): string {
+  if (context.industries.includes('trade-logistics')) {
+    return pick(['Trade Consultant', 'Supply Chain Strategist', 'Regional Logistics Lead']);
+  }
+  if (context.industries.includes('finance')) {
+    return pick(['Cross-Border Advisor', 'Regional Deal Lead', 'International Partnerships Lead']);
+  }
+  if (context.industries.includes('media') || character.skills.includes('writing')) {
+    return pick(['Foreign Correspondent', 'Documentary Producer', 'Cultural Liaison']);
+  }
+  return pick(['Global Operator', 'Regional Director', 'International Consultant']);
+}
+
 function getCareerDecisionNodeId(origin: EducationChoiceId): string {
   switch (origin) {
     case 'choice-work':
@@ -409,7 +569,7 @@ function buildCareerChapter(context: StoryBuildContext): StoryNode[] {
   const { character, profile, ft } = context;
   const eraEvent = getCityEraEvent(character, profile);
   const careerNodes = generateCareerPaths(character, profile, ft);
-  const careerDecisionIndex = careerNodes.findIndex((node) => node.age >= 25);
+  const careerDecisionIndex = careerNodes.findIndex((node) => node.type === 'decision');
   const preDecisionNodes = careerDecisionIndex === -1 ? careerNodes : careerNodes.slice(0, careerDecisionIndex);
   const postDecisionNodes = careerDecisionIndex === -1 ? [] : careerNodes.slice(careerDecisionIndex);
 
@@ -757,16 +917,17 @@ function generateChildhoodNodes(character: Character, profile: CityProfile, ft: 
 
 function generateTeenageNodes(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode[] {
   const nodes: StoryNode[] = [];
-  const pop15 = ft.pop(profile.city, character.birthYear + 15);
+  const timeline = getEarlyLifeTimeline(character, profile);
+  const pop15 = ft.pop(profile.city, character.birthYear + timeline.teenDecisionAge);
 
   nodes.push({
     id: 'teenage-1',
     type: 'decision',
-    year: character.birthYear + 15,
-    age: 15,
+    year: character.birthYear + timeline.teenDecisionAge,
+    age: timeline.teenDecisionAge,
     title: 'The Teenage Years',
     description: [
-      `At 15, pressure intensifies in ${profile.city}. ${profile.socialNuance} The first real identity choice appears: performance, belonging, or rebellion.`,
+      `At ${timeline.teenDecisionAge}, pressure intensifies in ${profile.city}. ${profile.socialNuance} The first real identity choice appears: performance, belonging, or rebellion.`,
       pop15,
     ].filter(Boolean).join(' '),
     choices: [
@@ -820,8 +981,8 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'teen-study-path',
     type: 'event',
-    year: character.birthYear + 16,
-    age: 16,
+    year: character.birthYear + timeline.teenDecisionAge + 1,
+    age: timeline.teenDecisionAge + 1,
     title: 'The Exam Grind',
     description: `${character.name} becomes known as the disciplined one — top of most class rankings, last to leave the library. The social cost is real: weekends spent studying, friendships that drift. But a growing academic identity starts to feel like armor.`,
     nextNodeIds: ['teen-study-payoff'],
@@ -834,8 +995,8 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'teen-social-path',
     type: 'event',
-    year: character.birthYear + 16,
-    age: 16,
+    year: character.birthYear + timeline.teenDecisionAge + 1,
+    age: timeline.teenDecisionAge + 1,
     title: 'The Social Web',
     description: `${character.name} becomes a connector — the one who knows everyone, organizes events, navigates the politics of who belongs where. Grades are fine, not exceptional. What grows instead is an instinct for reading people that will outlast any grade.`,
     nextNodeIds: ['teen-social-payoff'],
@@ -848,8 +1009,8 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'teen-rebel-path',
     type: 'event',
-    year: character.birthYear + 16,
-    age: 16,
+    year: character.birthYear + timeline.teenDecisionAge + 1,
+    age: timeline.teenDecisionAge + 1,
     title: 'Crossing Lines',
     description: `${character.name} pushes back against every expected path. A brush with school authority — a suspended week, a late-night incident — becomes a strange turning point. The confrontation forces a question: is this who ${character.name} actually wants to be, or just who ${character.name} is pretending to be?`,
     nextNodeIds: ['teen-rebel-payoff'],
@@ -859,7 +1020,7 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
     category: 'health',
   });
 
-  const pop17 = ft.pop(profile.city, character.birthYear + 17);
+  const pop17 = ft.pop(profile.city, character.birthYear + timeline.teenPayoffAge);
   const socialLeansRomantic = character.childhoodDream === 'love'
     || character.personality.includes('outgoing')
     || character.personality.includes('empathetic');
@@ -867,8 +1028,8 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'teen-study-payoff',
     type: 'event',
-    year: character.birthYear + 17,
-    age: 17,
+    year: character.birthYear + timeline.teenPayoffAge,
+    age: timeline.teenPayoffAge,
     title: 'Scholarship Window',
     description: [
       `${character.name}'s consistent performance opens concrete doors: scholarship interviews, teacher recommendations, and the first sense that effort can materially change what comes next.`,
@@ -884,8 +1045,8 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'teen-social-payoff',
     type: 'event',
-    year: character.birthYear + 17,
-    age: 17,
+    year: character.birthYear + timeline.teenPayoffAge,
+    age: timeline.teenPayoffAge,
     title: socialLeansRomantic ? 'First Love' : 'Found My People',
     description: [
       socialLeansRomantic
@@ -905,8 +1066,8 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'teen-rebel-payoff',
     type: 'event',
-    year: character.birthYear + 17,
-    age: 17,
+    year: character.birthYear + timeline.teenPayoffAge,
+    age: timeline.teenPayoffAge,
     title: 'Consequences and Direction',
     description: [
       `${character.name} faces the bill for a year of pushing boundaries: tense family conversations, school scrutiny, and a smaller margin for error. At the same time, a clearer personal code starts forming from the fallout.`,
@@ -924,14 +1085,15 @@ function generateTeenageNodes(character: Character, profile: CityProfile, ft: Fl
 
 function generateEducationDecision(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode {
   const context = buildReplayContext(character, profile);
+  const timeline = getEarlyLifeTimeline(character, profile);
   const dream = dreamLabel(character.childhoodDream);
-  const eraAt18 = ft.flavor(profile.city, character.birthYear + 18);
+  const eraAt18 = ft.flavor(profile.city, character.birthYear + timeline.educationDecisionAge);
 
   return {
     id: 'education-decision',
     type: 'decision',
-    year: character.birthYear + 18,
-    age: 18,
+    year: character.birthYear + timeline.educationDecisionAge,
+    age: timeline.educationDecisionAge,
     title: 'The Crossroads',
     description: [
       `School ends and adulthood begins in ${profile.city}. Family expectations, financial reality, and dreams of ${dream} collide in one irreversible decision.`,
@@ -1012,12 +1174,16 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   const skill = character.skills[0] || 'adaptability';
   const context = buildReplayContext(character, profile);
   const availableTrackIds = new Set<CareerTrackId>();
+  const universityAges = getEducationBranchTimeline(character, profile, 'choice-university');
+  const workAges = getEducationBranchTimeline(character, profile, 'choice-work');
+  const artAges = getEducationBranchTimeline(character, profile, 'choice-art');
+  const travelAges = getEducationBranchTimeline(character, profile, 'choice-travel');
 
   nodes.push({
     id: 'university-path',
     type: 'event',
-    year: character.birthYear + 20,
-    age: 20,
+    year: character.birthYear + universityAges.startAge,
+    age: universityAges.startAge,
     title: 'The Midterm Grind',
     description: `Halfway through the degree, the reality of the work sets in. Long nights in the library, the growing pressure of entering the workforce, and the feeling that ${profile.city} is moving faster than ${character.name} can study it.`,
     nextNodeIds: ['university-midpoint'],
@@ -1030,8 +1196,8 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   nodes.push({
     id: 'university-midpoint',
     type: 'event',
-    year: character.birthYear + 22,
-    age: 22,
+    year: character.birthYear + universityAges.midpointAge,
+    age: universityAges.midpointAge,
     title: 'University Graduate',
     description: `${character.name} graduates and enters a crowded market with growing confidence in ${skill}. In ${profile.city}, credentials open doors, but grit determines which ones stay open.`,
     nextNodeIds: [getCareerDecisionNodeId('choice-university')],
@@ -1044,8 +1210,8 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   nodes.push({
     id: 'work-path',
     type: 'event',
-    year: character.birthYear + 20,
-    age: 20,
+    year: character.birthYear + workAges.startAge,
+    age: workAges.startAge,
     title: 'Earning Early',
     description: `While peers sit in lecture halls, ${character.name} is already earning a paycheck. The independence feels good, but navigating workplace politics at 20 requires growing up quickly.`,
     nextNodeIds: ['work-midpoint'],
@@ -1058,8 +1224,8 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   nodes.push({
     id: 'work-midpoint',
     type: 'event',
-    year: character.birthYear + 22,
-    age: 22,
+    year: character.birthYear + workAges.midpointAge,
+    age: workAges.midpointAge,
     title: 'Working Life',
     description: `Four years of direct work experience sharpen ${character.name}'s instincts. ${profile.workNuance} Small wins start accumulating into professional identity.`,
     nextNodeIds: [getCareerDecisionNodeId('choice-work')],
@@ -1072,8 +1238,8 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   nodes.push({
     id: 'art-path',
     type: 'event',
-    year: character.birthYear + 20,
-    age: 20,
+    year: character.birthYear + artAges.startAge,
+    age: artAges.startAge,
     title: 'Finding a Voice',
     description: `The early creative years are loud and chaotic. There is no money, but there is absolute freedom. ${character.name} finds a community of like-minded people in ${profile.city} who make the struggle feel like a shared secret.`,
     nextNodeIds: ['art-midpoint'],
@@ -1086,8 +1252,8 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   nodes.push({
     id: 'art-midpoint',
     type: 'event',
-    year: character.birthYear + 22,
-    age: 22,
+    year: character.birthYear + artAges.midpointAge,
+    age: artAges.midpointAge,
     title: 'The Struggling Artist',
     description: `${character.name} spends years creating with uncertain income and occasional breakthroughs. The work is raw, personal, and often misunderstood, but impossible to abandon.`,
     nextNodeIds: [getCareerDecisionNodeId('choice-art')],
@@ -1100,8 +1266,8 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   nodes.push({
     id: 'travel-path',
     type: 'event',
-    year: character.birthYear + 20,
-    age: 20,
+    year: character.birthYear + travelAges.startAge,
+    age: travelAges.startAge,
     title: 'Far From Home',
     description: `A missed train, a stolen wallet, a conversation with a stranger in a language ${character.name} barely speaks. The romance of travel gives way to the gritty, beautiful reality of surviving on one's own wits.`,
     nextNodeIds: ['travel-midpoint'],
@@ -1114,8 +1280,8 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
   nodes.push({
     id: 'travel-midpoint',
     type: 'event',
-    year: character.birthYear + 22,
-    age: 22,
+    year: character.birthYear + travelAges.midpointAge,
+    age: travelAges.midpointAge,
     title: 'World Wanderer',
     description: `${character.name} returns to ${profile.city} after years abroad with expanded perspective, looser assumptions, and a clearer sense of what kind of life feels authentic.`,
     nextNodeIds: [getCareerDecisionNodeId('choice-travel')],
@@ -1130,48 +1296,52 @@ function generateCareerPaths(character: Character, profile: CityProfile, ft: Fla
     opener: string;
     title: string;
     emphasis: string;
+    decisionAge: number;
   }> = [
     {
       origin: 'choice-university',
       opener: 'A degree in hand and theory in mind,',
       title: 'Career Crossroads',
       emphasis: 'Credentials created options, but not certainty.',
+      decisionAge: universityAges.decisionAge,
     },
     {
       origin: 'choice-work',
       opener: 'Having already logged real hours in the working world,',
       title: 'Practical Momentum',
       emphasis: 'Experience has become leverage, but also a kind of inertia.',
+      decisionAge: workAges.decisionAge,
     },
     {
       origin: 'choice-art',
       opener: 'After years betting on creative identity over stability,',
       title: 'Make It Sustainable',
       emphasis: 'The question is no longer whether the work matters. It is whether it can carry a life.',
+      decisionAge: artAges.decisionAge,
     },
     {
       origin: 'choice-travel',
       opener: 'Back from wandering with a wider frame of reference,',
       title: 'Re-Entering the City',
       emphasis: 'Perspective is richer now, but so is the pressure to commit.',
+      decisionAge: travelAges.decisionAge,
     },
   ];
-
-  const eraAt25 = ft.flavor(profile.city, character.birthYear + 25);
   careerDecisionSpecs.forEach((spec) => {
     const choices = generateCareerChoices(character, profile, spec.origin, context);
+    const eraAtDecision = ft.flavor(profile.city, character.birthYear + spec.decisionAge);
     choices.forEach((choice) => {
       availableTrackIds.add(choice.id as CareerTrackId);
     });
     nodes.push({
       id: getCareerDecisionNodeId(spec.origin),
       type: 'decision',
-      year: character.birthYear + 25,
-      age: 25,
+      year: character.birthYear + spec.decisionAge,
+      age: spec.decisionAge,
       title: spec.title,
       description: [
         `${spec.opener} momentum and self-doubt arrive together. ${profile.workNuance} ${spec.emphasis}`,
-        eraAt25,
+        eraAtDecision,
       ].filter(Boolean).join(' '),
       choices,
       imagePrompt: `pixel art major career decision scene in ${profile.city}`,
@@ -1357,15 +1527,20 @@ function generateCareerChoices(
     context.careerBias === 'global' ||
     context.industries.includes('global-business') ||
     context.industries.includes('logistics');
+  const formalOccupation = getFormalOccupation(character, context);
+  const stableOccupation = getStableOccupation(character, context);
+  const creativeOccupation = getCreativeOccupation(character);
+  const entrepreneurOccupation = getEntrepreneurOccupation(character, context);
+  const globalOccupation = getGlobalOccupation(character, context);
 
   const choices: Choice[] = [
     {
       id: 'career-climb',
       text: 'Climb the Corporate Ladder',
-      description: `Compete aggressively in ${profile.city}'s formal career track`,
+      description: `Compete aggressively for roles like ${formalOccupation} in ${profile.city}`,
       nextNodeId: 'corporate-path',
       effects: replayEffects(
-        { money: 2, happiness: -1, occupation: 'Manager' },
+        { money: 2, happiness: -1, occupation: formalOccupation },
         {
           careerArc: 'corporate-climb',
           tags: ['status-striver'],
@@ -1378,10 +1553,10 @@ function generateCareerChoices(
     {
       id: 'career-stable',
       text: 'Find Stability',
-      description: 'Prioritize sustainable growth and work-life balance',
+      description: `Build a durable profession as a ${stableOccupation}`,
       nextNodeId: 'stable-path',
       effects: replayEffects(
-        { money: 1, happiness: 1, occupation: 'Professional' },
+        { money: 1, happiness: 1, occupation: stableOccupation },
         {
           careerArc: 'stable-craft',
           tags: ['steady-builder'],
@@ -1396,10 +1571,10 @@ function generateCareerChoices(
     choices.push({
       id: 'career-creative',
       text: 'Pursue Creative Dreams',
-      description: 'Build a life around craft, risk, and artistic identity',
+      description: `Try to make it as a ${creativeOccupation}`,
       nextNodeId: 'creative-career-path',
       effects: replayEffects(
-        { money: -1, happiness: 2, occupation: 'Artist' },
+        { money: -1, happiness: 2, occupation: creativeOccupation },
         {
           careerArc: 'creative-precarity',
           tags: ['creative-identity'],
@@ -1415,10 +1590,10 @@ function generateCareerChoices(
     choices.push({
       id: 'career-entrepreneur',
       text: 'Start a Business',
-      description: 'Trade stability for ownership and upside',
+      description: `Trade stability for ownership as a ${entrepreneurOccupation}`,
       nextNodeId: 'entrepreneur-path',
       effects: replayEffects(
-        { money: -2, happiness: 1, occupation: 'Entrepreneur' },
+        { money: -2, happiness: 1, occupation: entrepreneurOccupation },
         {
           careerArc: 'founder-volatility',
           tags: ['ownership-bet'],
@@ -1434,10 +1609,10 @@ function generateCareerChoices(
     choices.push({
       id: 'career-global',
       text: 'Build an International Career',
-      description: 'Use mobility and networks to work across borders',
+      description: `Use mobility and networks to work across borders as a ${globalOccupation}`,
       nextNodeId: 'global-path',
       effects: replayEffects(
-        { money: 1, happiness: 1, occupation: 'Global Operator' },
+        { money: 1, happiness: 1, occupation: globalOccupation },
         {
           careerArc: 'global-operator',
           mobilityArc: 'migrant',
@@ -1584,8 +1759,13 @@ function generateWorkLifeDecisions(character: Character, profile: CityProfile): 
 function getRelationshipAge(character: Character): number {
   const profile = getCityProfile(character.birthplace);
   const context = buildReplayContext(character, profile);
-  if (context.relationshipBias === 'independent') return 35;
-  if (context.familyPressure === 'high' || context.relationshipBias === 'committed') return 33;
+  if (context.relationshipBias === 'independent') {
+    return context.mobility === 'high' || character.personality.includes('adventurous') ? 37 : 36;
+  }
+  if (context.familyPressure === 'high' || context.relationshipBias === 'committed') {
+    return character.personality.includes('empathetic') || character.childhoodDream === 'love' ? 31 : 32;
+  }
+  if (character.personality.includes('creative')) return 35;
   return 34;
 }
 
@@ -1794,10 +1974,13 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
 
   // All downstream ages are anchored to relAge so the timeline never goes
   // backward regardless of which relationship path the character is on.
-  const outcomeAge   = relAge + 1;  // married-young / single-focused / cohabitation
-  const familyAge    = relAge + 3;
-  const familyPath1  = relAge + 5;
-  const familyPath2  = relAge + 7;
+  // Midlife currently starts at 40, so relationship/family beats are
+  // compressed when relAge is late (for example independent-biased runs).
+  const midlifeStartAge = 40;
+  const outcomeAge = relAge + 1; // married-young / single-focused / cohabitation
+  const familyAge = Math.min(relAge + 3, midlifeStartAge - 3);
+  const familyPath1 = Math.min(relAge + 5, midlifeStartAge - 2);
+  const familyPath2 = Math.min(relAge + 7, midlifeStartAge - 1);
 
   nodes.push({
     id: 'relationship-decision',

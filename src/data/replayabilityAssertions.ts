@@ -130,6 +130,60 @@ const tests: TestCase[] = [
     },
   },
   {
+    name: 'decision timing varies across different starting profiles',
+    run: () => {
+      const earlyStructured = createCharacter({
+        birthplace: 'Beijing',
+        location: 'Beijing',
+        personality: ['analytical', 'cautious'],
+        childhoodDream: 'knowledge',
+      });
+      const laterExploratory = createCharacter({
+        birthplace: 'San Francisco',
+        location: 'San Francisco',
+        personality: ['creative', 'adventurous'],
+        childhoodDream: 'freedom',
+      });
+
+      const earlyNodes = generateInitialLifeStory(earlyStructured);
+      const laterNodes = generateInitialLifeStory(laterExploratory);
+      const earlyTeen = earlyNodes.find((node) => node.id === 'teenage-1');
+      const laterTeen = laterNodes.find((node) => node.id === 'teenage-1');
+      const earlyEducation = earlyNodes.find((node) => node.id === 'education-decision');
+      const laterEducation = laterNodes.find((node) => node.id === 'education-decision');
+
+      assertCondition(earlyTeen && laterTeen && earlyEducation && laterEducation, 'expected timing nodes to exist');
+      assertCondition(earlyTeen.age !== laterTeen.age, 'expected teenage decision age to vary');
+      assertCondition(earlyEducation.age !== laterEducation.age, 'expected education decision age to vary');
+    },
+  },
+  {
+    name: 'career occupations are specific rather than generic defaults',
+    run: () => {
+      const character = createCharacter({
+        birthplace: 'New York',
+        location: 'New York',
+        personality: ['ambitious', 'analytical'],
+        skills: ['business', 'mathematics'],
+        childhoodDream: 'wealth',
+      });
+
+      const nodes = appendChapter(
+        generateInitialLifeStory(character),
+        character,
+        'education-decision',
+        'choice-university',
+      );
+      const careerDecision = nodes.find((node) => node.id === 'career-decision');
+      assertCondition(careerDecision?.choices, 'expected a career decision node');
+
+      const occupations = careerDecision.choices.map((choice) => choice.effects.occupation).filter(Boolean);
+      assertCondition(occupations.length > 0, 'expected career choices to set occupations');
+      assertCondition(!occupations.includes('Manager'), 'expected formal occupation to be more specific than Manager');
+      assertCondition(!occupations.includes('Professional'), 'expected stable occupation to be more specific than Professional');
+    },
+  },
+  {
     name: 'staged append can reach ending without duplicate node ids',
     run: () => {
       const character = createCharacter({
