@@ -197,7 +197,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
       {/* Scene Image */}
       <div
         className="shrink-0 mb-2 flex w-full justify-center overflow-hidden border border-white/40 bg-zinc-900"
-        style={{ minHeight: '64px', height: 'clamp(64px, 11vh, 120px)' }}
+        style={{ minHeight: '96px', height: 'clamp(96px, 16vh, 168px)' }}
       >
         <ScenePixelArt node={currentNode} birthplace={character.birthplace} />
       </div>
