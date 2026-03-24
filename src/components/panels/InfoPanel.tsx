@@ -269,6 +269,9 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             <p className="text-[11px] text-zinc-400">{lifeStageLabel(character.age, character.occupation)}</p>
           </div>
           <div className="text-right text-[11px] text-zinc-400">
+            <div className="mb-1 inline-flex items-center justify-center border border-amber-400/45 bg-amber-400/10 px-2 py-1 text-[12px] font-bold tracking-[0.24em] text-amber-300 md:text-[13px]">
+              {currentNode.year}
+            </div>
             <p className="text-sm font-bold leading-tight text-zinc-100 md:text-base">{character.age} yrs</p>
             <p>{character.location}</p>
           </div>
@@ -329,7 +332,6 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
 
       <div className="mb-2 flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.22em]">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="shrink-0 text-zinc-500">{currentNode.year}</span>
           {currentNode.category && (
             <span className="shrink-0 text-amber-400">{currentNode.category}</span>
           )}
