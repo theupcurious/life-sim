@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, StoryNode } from '@/types/game';
 import { Heart, Coins, Smile, ChevronDown, ChevronUp } from 'lucide-react';
 import ScenePixelArt from './ScenePixelArt';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 
 interface InfoPanelProps {
   character: Character;
@@ -114,6 +115,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   gameEnded,
 }) => {
   const [revealedChoiceNodeId, setRevealedChoiceNodeId] = useState<string | null>(null);
+  const [mobileChoicesNodeId, setMobileChoicesNodeId] = useState<string | null>(null);
 
   useEffect(() => {
     // Show choices after a delay if this is a decision node
@@ -166,6 +168,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   };
 
   const handleChoiceClick = (choiceId: string) => {
+    setMobileChoicesNodeId(null);
     setRevealedChoiceNodeId(null);
     onChoice(choiceId);
   };
@@ -190,6 +193,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
     resolvedConsequences,
   } = getCausalitySnapshot(causalityState);
   const tracePill = arcs[0] ?? tags[0] ?? currentNode.category;
+  const isMobileChoicesOpen = mobileChoicesNodeId === currentNode.id;
   const sceneHeight = isDecisionNode
     ? 'clamp(72px, 12vh, 120px)'
     : 'clamp(96px, 16vh, 168px)';
@@ -263,22 +267,24 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
     <div className="info-panel h-full flex flex-col overflow-hidden">
       {/* Header - Character Info */}
       <div className="border-b border-white/20 pb-2 mb-2">
-        <div className="flex items-start justify-between gap-3">
-          <div>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3">
+          <div className="min-w-0">
             <h2 className="text-sm font-bold tracking-[0.18em] leading-tight uppercase text-zinc-100 md:text-base">{character.name}</h2>
             <p className="text-[11px] text-zinc-400">{lifeStageLabel(character.age, character.occupation)}</p>
           </div>
-          <div className="text-right text-[11px] text-zinc-400">
-            <div className="mb-1 inline-flex items-center justify-center border border-amber-400/45 bg-amber-400/10 px-2 py-1 text-[12px] font-bold tracking-[0.24em] text-amber-300 md:text-[13px]">
+          <div className="pt-0.5 text-center">
+            <div className="inline-flex items-center justify-center border border-white/30 bg-white/5 px-3 py-1 text-[12px] font-bold tracking-[0.24em] text-white md:text-[13px]">
               {currentNode.year}
             </div>
+          </div>
+          <div className="text-right text-[11px] text-zinc-400">
             <p className="text-sm font-bold leading-tight text-zinc-100 md:text-base">{character.age} yrs</p>
             <p>{character.location}</p>
           </div>
         </div>
 
         {/* Age timeline bar */}
-        <div className="mt-2">
+        <div className={`mt-2 ${isDecisionNode ? 'hidden sm:block' : ''}`}>
           <div className="mb-1 flex items-center justify-between text-[9px] uppercase tracking-[0.22em] text-zinc-600">
             <span>Birth</span>
             <span>Age {character.age}</span>
@@ -297,9 +303,9 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             ))}
           </div>
         </div>
-        
+
         {/* Stats */}
-        <div className="mt-2 flex gap-3 flex-wrap">
+        <div className="mt-2 flex flex-wrap gap-3">
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-zinc-500 mr-0.5 uppercase">Health</span>
             {renderHearts()}
@@ -316,7 +322,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
 
         {/* Personality Tags */}
         {character.personality.length > 0 && (
-          <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+          <p className={`mt-2 text-[10px] uppercase tracking-[0.18em] text-zinc-500 ${isDecisionNode ? 'hidden sm:block' : ''}`}>
             {character.personality.join(' • ')}
           </p>
         )}
@@ -324,7 +330,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
 
       {/* Scene Image */}
       <div
-        className="shrink-0 mb-2 flex w-full justify-center overflow-hidden border border-white/40 bg-zinc-900"
+        className={`shrink-0 mb-2 w-full justify-center overflow-hidden border border-white/40 bg-zinc-900 ${isDecisionNode ? 'hidden sm:flex' : 'flex'}`}
         style={{ minHeight: isDecisionNode ? '72px' : '96px', height: sceneHeight }}
       >
         <ScenePixelArt node={currentNode} birthplace={character.birthplace} />
@@ -417,11 +423,22 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             </div>
 
             {showChoices && (
+              <div className="shrink-0 lg:hidden">
+                <button
+                  onClick={() => setMobileChoicesNodeId(currentNode.id)}
+                  className="game-button w-full border-amber-400 text-amber-300"
+                >
+                  View {choiceCount} Choices
+                </button>
+              </div>
+            )}
+
+            {showChoices && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.18 }}
-                className="min-h-0 overflow-y-auto border border-white/10 bg-black/40 px-2 py-2 sm:px-3"
+                className="hidden min-h-0 overflow-y-auto border border-white/10 bg-black/40 px-2 py-2 sm:px-3 lg:block"
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">
@@ -436,6 +453,27 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
                 </div>
               </motion.div>
             )}
+
+            <Drawer
+              open={isMobileChoicesOpen}
+              onOpenChange={(open) => setMobileChoicesNodeId(open ? currentNode.id : null)}
+            >
+              <DrawerContent className="max-h-[88svh] border-white/15 bg-black text-white lg:hidden">
+                <DrawerHeader className="border-b border-white/10 px-4 pb-3 pt-4 text-left">
+                  <DrawerTitle className="text-sm uppercase tracking-[0.24em] text-zinc-100">
+                    Choose Your Path
+                  </DrawerTitle>
+                  <DrawerDescription className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                    {choiceCount} options for {currentNode.year}
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="overflow-y-auto px-3 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-3">
+                  <div className="space-y-2.5">
+                    {renderedChoices}
+                  </div>
+                </div>
+              </DrawerContent>
+            </Drawer>
           </div>
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
