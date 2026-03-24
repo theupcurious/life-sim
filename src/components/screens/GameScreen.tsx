@@ -85,41 +85,8 @@ const GameScreen: React.FC = () => {
         }}
       />
 
-      <div className="relative z-10 flex h-full w-full items-stretch justify-center px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] sm:px-4 lg:px-8">
-        <div className="flex h-full w-full max-w-[1480px] flex-col overflow-hidden border border-white/15 bg-black/90 shadow-[0_0_0_1px_rgba(251,191,36,0.08),0_30px_80px_rgba(0,0,0,0.65)]">
-          <div className="hidden shrink-0 border-b border-white/10 lg:flex lg:items-center lg:justify-between lg:px-6 lg:py-4">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.4em] text-zinc-600">IF Archive Terminal</p>
-              <h1 className="mt-1 text-lg uppercase tracking-[0.22em] text-zinc-200">Life Playback Console</h1>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex border border-white/10 bg-zinc-950/80 p-1">
-                {tabs.map(({ id, label, icon: Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(id)}
-                    className={`flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-[0.25em] transition-all ${
-                      activeTab === id
-                        ? 'bg-amber-400 text-black'
-                        : 'text-zinc-500 hover:text-zinc-200'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-              {activeTab === 'map' && (
-                <div className="text-right text-[10px] uppercase tracking-[0.25em] text-zinc-600">
-                  <span className="mr-4">Scroll to Zoom</span>
-                  <span className="mr-4">Drag to Pan</span>
-                  <span>Tap Nodes to Return</span>
-                </div>
-              )}
-            </div>
-          </div>
-
+      <div className="relative z-10 flex h-full w-full items-stretch justify-center px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-[calc(env(safe-area-inset-top,0px)+0.5rem)] sm:px-4 lg:px-6">
+        <div className="relative flex h-full w-full max-w-[980px] flex-col overflow-hidden border border-white/15 bg-black/90 shadow-[0_0_0_1px_rgba(251,191,36,0.08),0_30px_80px_rgba(0,0,0,0.65)] lg:max-w-[1040px]">
           <div className="flex min-h-0 flex-1 flex-col">
             {activeTab === 'story' && (
               <motion.div
@@ -127,24 +94,18 @@ const GameScreen: React.FC = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25 }}
-                className="flex-1 min-h-0 overflow-hidden p-3 sm:p-4 lg:px-10 lg:py-8"
+                className="flex-1 min-h-0 overflow-hidden p-2 sm:p-3 lg:p-3"
               >
-                <div className="mx-auto flex h-full w-full max-w-[920px] flex-col overflow-hidden border border-amber-400/20 bg-zinc-950/80 shadow-[0_0_0_1px_rgba(251,191,36,0.08),inset_0_0_40px_rgba(251,191,36,0.04)]">
-                  <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3 text-[10px] uppercase tracking-[0.28em] text-zinc-500 lg:px-6">
-                    <span>Current Story</span>
-                    <span className="text-amber-400">{currentNode?.year ?? 'Loading'}</span>
-                  </div>
-                  <div className="min-h-0 flex-1 p-3 sm:p-4 lg:p-6">
-                    <InfoPanel
-                      character={character}
-                      currentNode={currentNode}
-                      onChoice={handleChoice}
-                      onNext={handleNext}
-                      onRelive={handleRelive}
-                      isReliveMode={isReliveMode}
-                      gameEnded={gameEnded}
-                    />
-                  </div>
+                <div className="mx-auto h-full w-full max-w-[860px]">
+                  <InfoPanel
+                    character={character}
+                    currentNode={currentNode}
+                    onChoice={handleChoice}
+                    onNext={handleNext}
+                    onRelive={handleRelive}
+                    isReliveMode={isReliveMode}
+                    gameEnded={gameEnded}
+                  />
                 </div>
               </motion.div>
             )}
@@ -155,9 +116,9 @@ const GameScreen: React.FC = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25 }}
-                className="flex-1 min-h-0 overflow-hidden p-0 lg:p-6"
+                className="flex-1 min-h-0 overflow-hidden p-0 lg:p-3"
               >
-                <div className="h-full w-full border-y border-white/10 bg-black lg:border lg:border-white/10">
+                <div className="h-full w-full bg-black">
                   <Flowchart
                     nodes={nodes}
                     connections={connections}
@@ -169,17 +130,25 @@ const GameScreen: React.FC = () => {
                 </div>
               </motion.div>
             )}
+
+            {activeTab === 'map' && (
+              <div className="pointer-events-none absolute bottom-16 left-4 hidden text-[10px] uppercase tracking-[0.25em] text-zinc-600 lg:block">
+                <span className="mr-4">Scroll to Zoom</span>
+                <span className="mr-4">Drag to Pan</span>
+                <span>Tap Nodes to Return</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex shrink-0 border-t border-white/10 bg-black/95 lg:hidden">
+          <div className="flex shrink-0 items-center justify-center gap-2 border-t border-white/10 bg-black/95 px-2 py-2">
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`flex flex-1 items-center justify-center gap-2 px-3 py-3 text-xs uppercase tracking-[0.25em] transition-all ${
+                className={`flex min-w-0 flex-1 items-center justify-center gap-2 px-3 py-3 text-xs uppercase tracking-[0.25em] transition-all lg:flex-none lg:min-w-[180px] ${
                   activeTab === id
-                    ? 'border-t-2 border-amber-400 bg-amber-400/10 text-amber-400 -mt-px'
-                    : 'text-zinc-500'
+                    ? 'bg-amber-400 text-black'
+                    : 'text-zinc-500 hover:text-zinc-200'
                 }`}
               >
                 <Icon className="h-4 w-4" />

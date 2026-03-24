@@ -128,7 +128,7 @@
   
   /* Info Panel */
   .info-panel {
-    @apply border-2 border-white bg-black/90 p-5;
+    @apply border-2 border-white bg-black/90 p-4 md:p-5;
     box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
   }
   

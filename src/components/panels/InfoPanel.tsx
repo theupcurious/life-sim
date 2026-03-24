@@ -138,19 +138,23 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
     <div className="info-panel h-full flex flex-col overflow-hidden">
       {/* Header - Character Info */}
       <div className="border-b border-white/20 pb-2 mb-2">
-        <div className="flex justify-between items-start mb-1">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold tracking-wider leading-tight">{character.name}</h2>
-            <p className="text-xs text-zinc-400">{lifeStageLabel(character.age, character.occupation)}</p>
+            <h2 className="text-sm font-bold tracking-[0.18em] leading-tight uppercase text-zinc-100 md:text-base">{character.name}</h2>
+            <p className="text-[11px] text-zinc-400">{lifeStageLabel(character.age, character.occupation)}</p>
           </div>
-          <div className="text-right">
-            <p className="text-base font-bold leading-tight">{character.age} yrs</p>
-            <p className="text-xs text-zinc-400">{character.location}</p>
+          <div className="text-right text-[11px] text-zinc-400">
+            <p className="text-sm font-bold leading-tight text-zinc-100 md:text-base">{character.age} yrs</p>
+            <p>{character.location}</p>
           </div>
         </div>
 
         {/* Age timeline bar */}
-        <div className="mt-2 mb-1">
+        <div className="mt-2">
+          <div className="mb-1 flex items-center justify-between text-[9px] uppercase tracking-[0.22em] text-zinc-600">
+            <span>Birth</span>
+            <span>Age {character.age}</span>
+          </div>
           <div className="relative w-full h-1 bg-zinc-800">
             <div
               className="absolute left-0 top-0 h-full bg-amber-400 transition-all duration-700"
@@ -159,22 +163,15 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             {[20, 40, 60, 80].map(tick => (
               <div
                 key={tick}
-                className="absolute top-0 w-px h-2 -translate-y-0.5 bg-zinc-600"
+                className="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-zinc-600"
                 style={{ left: `${(tick / 90) * 100}%` }}
               />
             ))}
           </div>
-          <div className="flex justify-between text-[9px] text-zinc-700 mt-1">
-            <span>birth</span>
-            <span>20</span>
-            <span>40</span>
-            <span>60</span>
-            <span>80</span>
-          </div>
         </div>
         
         {/* Stats */}
-        <div className="flex gap-3 mt-2 flex-wrap">
+        <div className="mt-2 flex gap-3 flex-wrap">
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-zinc-500 mr-0.5 uppercase">Health</span>
             {renderHearts()}
@@ -191,28 +188,21 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
 
         {/* Personality Tags */}
         {character.personality.length > 0 && (
-          <div className="flex gap-1.5 mt-2 flex-wrap">
-            {character.personality.map(trait => (
-              <span
-                key={trait}
-                className="text-[10px] px-1.5 py-0.5 border border-white/20 text-zinc-400 uppercase"
-              >
-                {trait}
-              </span>
-            ))}
-          </div>
+          <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+            {character.personality.join(' • ')}
+          </p>
         )}
       </div>
 
       {/* Scene Image */}
       <div
-        className="shrink-0 w-full mb-3 flex justify-center border-2 border-white/70 bg-zinc-900 overflow-hidden"
-        style={{ minHeight: '80px', height: 'clamp(80px, 18vh, 220px)' }}
+        className="shrink-0 mb-2 flex w-full justify-center overflow-hidden border border-white/40 bg-zinc-900"
+        style={{ minHeight: '64px', height: 'clamp(64px, 11vh, 120px)' }}
       >
         <ScenePixelArt node={currentNode} birthplace={character.birthplace} />
       </div>
 
-      <div className="flex items-center justify-between mb-3 text-[10px] uppercase tracking-wider">
+      <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.22em]">
         <span className="text-zinc-500">{currentNode.year}</span>
         {currentNode.category && (
           <span className="text-amber-400">{currentNode.category}</span>
@@ -231,11 +221,11 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
               transition={{ duration: 0.3 }}
             >
               {currentNode.title && (
-                <h3 className="text-lg font-bold mb-2 text-amber-400">
+                <h3 className="mb-1 text-base font-bold text-amber-400 md:text-lg">
                   {currentNode.title}
                 </h3>
               )}
-              <p className="text-base md:text-[15px] leading-relaxed text-zinc-200">
+              <p className="text-[15px] leading-[1.7] text-zinc-200 md:text-base">
                 <TypewriterText text={currentNode.description} />
               </p>
             </motion.div>
