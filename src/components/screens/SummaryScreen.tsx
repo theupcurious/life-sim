@@ -174,7 +174,7 @@ const SummaryScreen: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col items-center justify-start md:justify-center p-4 md:p-8 overflow-y-auto">
+    <div className="fixed inset-0 overflow-hidden bg-black px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] md:p-8">
       {/* Background Effect */}
       <div className="absolute inset-0 opacity-5">
         <div 
@@ -189,10 +189,10 @@ const SummaryScreen: React.FC = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative z-10 max-w-2xl w-full"
+        className="relative z-10 mx-auto flex h-full w-full max-w-2xl flex-col"
       >
         {/* Title */}
-        <div className="text-center mb-8">
+        <div className="shrink-0 text-center mb-5 md:mb-8">
           <motion.h1
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -207,29 +207,30 @@ const SummaryScreen: React.FC = () => {
           </p>
         </div>
 
-        {/* Life Quality Score */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="border-2 border-amber-400/50 bg-amber-400/10 p-4 md:p-6 mb-4 md:mb-6 text-center"
-        >
-          <p className="text-xs text-amber-400 uppercase tracking-wider mb-2">Life Quality Score</p>
-          <p className="text-4xl md:text-5xl font-bold text-amber-400">{lifeQuality}%</p>
-          <p className="text-sm text-zinc-400 mt-2">
-            {lifeQuality >= 80 ? 'A life well-lived' : 
-             lifeQuality >= 60 ? 'A balanced existence' : 
-             lifeQuality >= 40 ? 'A challenging journey' : 'A life of struggle'}
-          </p>
-        </motion.div>
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          {/* Life Quality Score */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="border-2 border-amber-400/50 bg-amber-400/10 p-4 md:p-6 mb-4 md:mb-6 text-center"
+          >
+            <p className="text-xs text-amber-400 uppercase tracking-wider mb-2">Life Quality Score</p>
+            <p className="text-4xl md:text-5xl font-bold text-amber-400">{lifeQuality}%</p>
+            <p className="text-sm text-zinc-400 mt-2">
+              {lifeQuality >= 80 ? 'A life well-lived' : 
+               lifeQuality >= 60 ? 'A balanced existence' : 
+               lifeQuality >= 40 ? 'A challenging journey' : 'A life of struggle'}
+            </p>
+          </motion.div>
 
-        {/* Character Summary Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
-        >
+          {/* Character Summary Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
+          >
           <div className="grid grid-cols-2 gap-3 md:gap-6">
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Name</p>
@@ -294,15 +295,15 @@ const SummaryScreen: React.FC = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Life Path Statistics */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
-        >
+          {/* Life Path Statistics */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-6"
+          >
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4">Life Path Statistics</p>
           <div className="flex justify-between items-center mb-4">
             <span className="text-zinc-400">Nodes Visited</span>
@@ -317,15 +318,15 @@ const SummaryScreen: React.FC = () => {
             />
           </div>
           <p className="text-right text-xs text-zinc-500">{completionPercentage}% explored</p>
-        </motion.div>
+          </motion.div>
 
-        {/* Key Life Events */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-8"
-        >
+          {/* Key Life Events */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="border-2 border-white/30 bg-zinc-900/50 p-4 md:p-6 mb-4 md:mb-8"
+          >
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4">Key Life Events</p>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {visitedNodeList
@@ -338,24 +339,25 @@ const SummaryScreen: React.FC = () => {
                 </div>
               ))}
           </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Life Summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-          className="border-l-2 border-amber-400/40 pl-4 mb-6"
-        >
-          <p className="text-sm text-zinc-400 leading-relaxed italic">{lifeSummary}</p>
-        </motion.div>
+          {/* Life Summary */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            className="border-l-2 border-amber-400/40 pl-4 mb-6"
+          >
+            <p className="text-sm text-zinc-400 leading-relaxed italic">{lifeSummary}</p>
+          </motion.div>
+        </div>
 
         {/* Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="flex gap-3 mb-3"
+          className="shrink-0 flex flex-col gap-3 mb-3 pt-4 sm:flex-row"
         >
           <button
             onClick={handleRelive}
@@ -376,7 +378,7 @@ const SummaryScreen: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
-          className="text-center"
+          className="shrink-0 text-center"
         >
           <button
             ref={shareRef}

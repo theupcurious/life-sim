@@ -2,8 +2,9 @@
 
 /* Ensure full screen coverage */
 #root {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100svh;
+  height: 100dvh;
   overflow: hidden;
 }
 

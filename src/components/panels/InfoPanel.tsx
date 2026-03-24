@@ -64,17 +64,16 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   isReliveMode,
   gameEnded,
 }) => {
-  const [showChoices, setShowChoices] = useState(false);
+  const [revealedChoiceNodeId, setRevealedChoiceNodeId] = useState<string | null>(null);
 
   useEffect(() => {
     // Show choices after a delay if this is a decision node
     if (currentNode?.type === 'decision' && currentNode.choices) {
+      const nodeId = currentNode.id;
       const timer = setTimeout(() => {
-        setShowChoices(true);
+        setRevealedChoiceNodeId(nodeId);
       }, 600);
       return () => clearTimeout(timer);
-    } else {
-      setShowChoices(false);
     }
   }, [currentNode]);
 
@@ -118,7 +117,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   };
 
   const handleChoiceClick = (choiceId: string) => {
-    setShowChoices(false);
+    setRevealedChoiceNodeId(null);
     onChoice(choiceId);
   };
 
@@ -131,6 +130,9 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   }
 
   const agePercent = Math.min(100, (character.age / 90) * 100);
+  const showChoices = currentNode.type === 'decision'
+    && !!currentNode.choices
+    && revealedChoiceNodeId === currentNode.id;
 
   return (
     <div className="info-panel h-full flex flex-col overflow-hidden">

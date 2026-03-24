@@ -304,7 +304,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black flex items-start md:items-center justify-center p-4 md:p-6 overflow-y-auto">
+    <div className="fixed inset-0 overflow-hidden bg-black px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] md:p-6">
       {/* Background Grid */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div
@@ -322,10 +322,10 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-xl my-4"
+        className="relative z-10 mx-auto flex h-full w-full max-w-xl flex-col"
       >
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="shrink-0 text-center mb-5 md:mb-8">
           <h1 className="text-3xl font-bold tracking-widest mb-2">
             <span className="text-white">CREATE </span>
             <span className="text-amber-400">LIFE</span>
@@ -334,7 +334,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
         </div>
 
         {/* Progress Bar */}
-        <div className="flex gap-2 mb-8">
+        <div className="shrink-0 flex gap-2 mb-5 md:mb-8">
           {[1, 2, 3, 4].map(s => (
             <div
               key={s}
@@ -344,12 +344,13 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
         </div>
 
         {/* Content */}
-        <div className="border border-white/30 bg-black/80 p-5 md:p-8 mb-4 md:mb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto border border-white/30 bg-black/80 p-5 md:p-8">
           {renderStep()}
         </div>
 
         {/* Navigation */}
-        <div className="flex gap-4">
+        <div className="shrink-0 pt-4 md:pt-6">
+          <div className="flex gap-4">
           {step > 1 && (
             <button
               onClick={() => setStep(step - 1)}
@@ -375,18 +376,19 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({
               Begin Life Journey
             </button>
           )}
-        </div>
+          </div>
 
-        {/* Random Character — prominent button */}
-        <button
-          onClick={onRandom}
-          className="mt-4 w-full flex items-center justify-center gap-2 py-3 border border-white/20
-                     text-zinc-400 text-sm uppercase tracking-widest
-                     hover:border-amber-400 hover:text-amber-400 transition-all"
-        >
-          <Shuffle className="w-4 h-4" />
-          Generate Random Character
-        </button>
+          {/* Random Character — prominent button */}
+          <button
+            onClick={onRandom}
+            className="mt-4 w-full flex items-center justify-center gap-2 py-3 border border-white/20
+                       text-zinc-400 text-sm uppercase tracking-widest
+                       hover:border-amber-400 hover:text-amber-400 transition-all"
+          >
+            <Shuffle className="w-4 h-4" />
+            Generate Random Character
+          </button>
+        </div>
       </motion.div>
     </div>
   );

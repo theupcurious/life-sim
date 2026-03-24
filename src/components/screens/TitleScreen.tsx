@@ -35,7 +35,7 @@ const TitleScreen: React.FC<TitleScreenProps> = ({ onStart }) => {
 
       {/* Centering wrapper — min-h-full + flex so content is centered when it
           fits the viewport, and padding ensures breathing room when it scrolls */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center py-12 px-6">
+      <div className="relative z-10 flex min-h-full flex-col items-center justify-center px-6 py-8 sm:py-12 [padding-top:calc(env(safe-area-inset-top,0px)+2rem)] [padding-bottom:calc(env(safe-area-inset-bottom,0px)+2rem)]">
 
       {/* Main content card */}
       <motion.div
