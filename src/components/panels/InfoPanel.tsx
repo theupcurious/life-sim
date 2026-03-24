@@ -349,65 +349,67 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-3 space-y-2 shrink-0"
+            className="mt-3 shrink-0 max-h-[44%] overflow-y-auto border border-white/10 bg-black/40 p-2"
           >
             <p className="text-xs uppercase tracking-widest text-zinc-500">
               Choose your path:
             </p>
-            {currentNode.choices.map((choice, index) => {
-              const req = choice.requires;
-              const locked = req && (
-                (req.money !== undefined && character.money < req.money) ||
-                (req.health !== undefined && character.health < req.health) ||
-                (req.happiness !== undefined && character.happiness < req.happiness)
-              );
-              const lockReason = locked
-                ? `Requires ${req!.money !== undefined && character.money < req!.money ? `Wealth ≥ ${req!.money}` : req!.health !== undefined && character.health < req!.health ? `Health ≥ ${req!.health}` : `Happiness ≥ ${req!.happiness}`}`
-                : null;
+            <div className="mt-2 space-y-2">
+              {currentNode.choices.map((choice, index) => {
+                const req = choice.requires;
+                const locked = req && (
+                  (req.money !== undefined && character.money < req.money) ||
+                  (req.health !== undefined && character.health < req.health) ||
+                  (req.happiness !== undefined && character.happiness < req.happiness)
+                );
+                const lockReason = locked
+                  ? `Requires ${req!.money !== undefined && character.money < req!.money ? `Wealth ≥ ${req!.money}` : req!.health !== undefined && character.health < req!.health ? `Health ≥ ${req!.health}` : `Happiness ≥ ${req!.happiness}`}`
+                  : null;
 
-              return (
-              <motion.button
-                key={choice.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + index * 0.08 }}
-                onClick={() => !locked && handleChoiceClick(choice.id)}
-                disabled={!!locked}
-                className={`choice-button text-left p-3 ${locked ? 'opacity-40 cursor-not-allowed' : ''}`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="text-amber-400 font-bold mt-0.5">{String.fromCharCode(65 + index)}.</span>
-                  <div>
-                    <div className="text-white font-medium">{choice.text}</div>
-                    {choice.description && (
-                      <div className="text-xs text-zinc-500 mt-1">{choice.description}</div>
-                    )}
-                    {/* Effects + lock */}
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {lockReason && (
-                        <span className="text-[10px] text-zinc-500">🔒 {lockReason}</span>
+                return (
+                <motion.button
+                  key={choice.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.08 }}
+                  onClick={() => !locked && handleChoiceClick(choice.id)}
+                  disabled={!!locked}
+                  className={`choice-button text-left p-3 ${locked ? 'opacity-40 cursor-not-allowed' : ''}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-amber-400 font-bold mt-0.5">{String.fromCharCode(65 + index)}.</span>
+                    <div>
+                      <div className="text-white font-medium">{choice.text}</div>
+                      {choice.description && (
+                        <div className="text-xs text-zinc-500 mt-1">{choice.description}</div>
                       )}
-                      {!locked && choice.effects.health !== undefined && (
-                        <span className={`text-[10px] ${choice.effects.health > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          Health {choice.effects.health > 0 ? '+' : ''}{choice.effects.health}
-                        </span>
-                      )}
-                      {!locked && choice.effects.money !== undefined && (
-                        <span className={`text-[10px] ${choice.effects.money > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
-                          Wealth {choice.effects.money > 0 ? '+' : ''}{choice.effects.money}
-                        </span>
-                      )}
-                      {!locked && choice.effects.happiness !== undefined && (
-                        <span className={`text-[10px] ${choice.effects.happiness > 0 ? 'text-amber-400' : 'text-red-400'}`}>
-                          Happy {choice.effects.happiness > 0 ? '+' : ''}{choice.effects.happiness}
-                        </span>
-                      )}
+                      {/* Effects + lock */}
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {lockReason && (
+                          <span className="text-[10px] text-zinc-500">🔒 {lockReason}</span>
+                        )}
+                        {!locked && choice.effects.health !== undefined && (
+                          <span className={`text-[10px] ${choice.effects.health > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            Health {choice.effects.health > 0 ? '+' : ''}{choice.effects.health}
+                          </span>
+                        )}
+                        {!locked && choice.effects.money !== undefined && (
+                          <span className={`text-[10px] ${choice.effects.money > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                            Wealth {choice.effects.money > 0 ? '+' : ''}{choice.effects.money}
+                          </span>
+                        )}
+                        {!locked && choice.effects.happiness !== undefined && (
+                          <span className={`text-[10px] ${choice.effects.happiness > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                            Happy {choice.effects.happiness > 0 ? '+' : ''}{choice.effects.happiness}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.button>
-              );
-            })}
+                </motion.button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
 

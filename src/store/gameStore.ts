@@ -89,6 +89,8 @@ type StoryGeneratorRuntime = typeof storyGenerator & {
   generateNextChapter?: (context: {
     character: Character;
     lifeState: GameLifeState;
+    existingNodes?: StoryNode[];
+    lastChoiceId?: string;
     nodes: StoryNode[];
     currentNodeId: string;
     previousNodeId?: string;
@@ -474,6 +476,8 @@ const maybeGenerateNextChapter = (context: ChapterGenerationContext): StoryNode[
     return normalizeGeneratedNodes(runtime.generateNextChapter({
       character: withLifeState(context.character, context.lifeState),
       lifeState: context.lifeState,
+      existingNodes: context.nodes,
+      lastChoiceId: context.choiceId,
       nodes: context.nodes,
       currentNodeId: context.currentNodeId,
       previousNodeId: context.previousNodeId,
