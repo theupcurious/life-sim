@@ -182,6 +182,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   const showChoices = currentNode.type === 'decision'
     && !!currentNode.choices
     && revealedChoiceNodeId === currentNode.id;
+  const isDecisionNode = currentNode.type === 'decision' && !!currentNode.choices;
   const {
     arcs,
     tags,
@@ -189,6 +190,74 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
     resolvedConsequences,
   } = getCausalitySnapshot(causalityState);
   const tracePill = arcs[0] ?? tags[0] ?? currentNode.category;
+  const sceneHeight = isDecisionNode
+    ? 'clamp(72px, 12vh, 120px)'
+    : 'clamp(96px, 16vh, 168px)';
+
+  const renderedChoices = showChoices && currentNode.choices
+    ? currentNode.choices.map((choice, index) => {
+        const req = choice.requires;
+        const locked = req && (
+          (req.money !== undefined && character.money < req.money) ||
+          (req.health !== undefined && character.health < req.health) ||
+          (req.happiness !== undefined && character.happiness < req.happiness)
+        );
+        const lockReason = locked
+          ? `Requires ${req!.money !== undefined && character.money < req!.money ? `Wealth ${req!.money}+` : req!.health !== undefined && character.health < req!.health ? `Health ${req!.health}+` : `Happiness ${req!.happiness}+`}`
+          : null;
+
+        return (
+          <motion.button
+            key={choice.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.22 + index * 0.05 }}
+            onClick={() => !locked && handleChoiceClick(choice.id)}
+            disabled={!!locked}
+            className={`choice-button text-left ${locked ? 'cursor-not-allowed opacity-40' : ''}`}
+          >
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 shrink-0 text-sm font-bold text-amber-400">
+                {String.fromCharCode(65 + index)}.
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-medium leading-tight text-white">
+                  {choice.text}
+                </div>
+                {choice.description && (
+                  <div className="mt-1 text-[11px] leading-5 text-zinc-500 sm:text-xs">
+                    {choice.description}
+                  </div>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {lockReason && (
+                    <span className="border border-white/10 bg-black/30 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+                      {lockReason}
+                    </span>
+                  )}
+                  {!locked && choice.effects.health !== undefined && (
+                    <span className={`border px-2 py-1 text-[10px] uppercase tracking-[0.16em] ${choice.effects.health > 0 ? 'border-green-400/30 bg-green-400/10 text-green-300' : 'border-red-400/25 bg-red-500/10 text-red-300'}`}>
+                      Health {choice.effects.health > 0 ? '+' : ''}{choice.effects.health}
+                    </span>
+                  )}
+                  {!locked && choice.effects.money !== undefined && (
+                    <span className={`border px-2 py-1 text-[10px] uppercase tracking-[0.16em] ${choice.effects.money > 0 ? 'border-amber-400/35 bg-amber-400/10 text-amber-300' : 'border-red-400/25 bg-red-500/10 text-red-300'}`}>
+                      Wealth {choice.effects.money > 0 ? '+' : ''}{choice.effects.money}
+                    </span>
+                  )}
+                  {!locked && choice.effects.happiness !== undefined && (
+                    <span className={`border px-2 py-1 text-[10px] uppercase tracking-[0.16em] ${choice.effects.happiness > 0 ? 'border-orange-300/35 bg-orange-300/10 text-orange-200' : 'border-red-400/25 bg-red-500/10 text-red-300'}`}>
+                      Happy {choice.effects.happiness > 0 ? '+' : ''}{choice.effects.happiness}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.button>
+        );
+      })
+    : null;
+  const choiceCount = currentNode.choices?.length ?? 0;
 
   return (
     <div className="info-panel h-full flex flex-col overflow-hidden">
@@ -253,7 +322,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
       {/* Scene Image */}
       <div
         className="shrink-0 mb-2 flex w-full justify-center overflow-hidden border border-white/40 bg-zinc-900"
-        style={{ minHeight: '96px', height: 'clamp(96px, 16vh, 168px)' }}
+        style={{ minHeight: isDecisionNode ? '72px' : '96px', height: sceneHeight }}
       >
         <ScenePixelArt node={currentNode} birthplace={character.birthplace} />
       </div>
@@ -322,95 +391,71 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
 
       {/* Story + Actions */}
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentNode.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              {currentNode.title && (
-                <h3 className="mb-1 text-base font-bold text-amber-400 md:text-lg">
-                  {currentNode.title}
-                </h3>
-              )}
-              <p className="text-[15px] leading-[1.7] text-zinc-200 md:text-base">
-                <TypewriterText text={currentNode.description} />
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Choices */}
-        {currentNode.type === 'decision' && currentNode.choices && showChoices && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-3 shrink-0 max-h-[44%] overflow-y-auto border border-white/10 bg-black/40 p-2"
-          >
-            <p className="text-xs uppercase tracking-widest text-zinc-500">
-              Choose your path:
-            </p>
-            <div className="mt-2 space-y-2">
-              {currentNode.choices.map((choice, index) => {
-                const req = choice.requires;
-                const locked = req && (
-                  (req.money !== undefined && character.money < req.money) ||
-                  (req.health !== undefined && character.health < req.health) ||
-                  (req.happiness !== undefined && character.happiness < req.happiness)
-                );
-                const lockReason = locked
-                  ? `Requires ${req!.money !== undefined && character.money < req!.money ? `Wealth ≥ ${req!.money}` : req!.health !== undefined && character.health < req!.health ? `Health ≥ ${req!.health}` : `Happiness ≥ ${req!.happiness}`}`
-                  : null;
-
-                return (
-                <motion.button
-                  key={choice.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.08 }}
-                  onClick={() => !locked && handleChoiceClick(choice.id)}
-                  disabled={!!locked}
-                  className={`choice-button text-left p-3 ${locked ? 'opacity-40 cursor-not-allowed' : ''}`}
+        {isDecisionNode ? (
+          <div className="mt-1 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-4">
+            <div className="min-h-0 overflow-y-auto border border-white/10 bg-black/35 px-3 py-3 lg:px-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentNode.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="text-amber-400 font-bold mt-0.5">{String.fromCharCode(65 + index)}.</span>
-                    <div>
-                      <div className="text-white font-medium">{choice.text}</div>
-                      {choice.description && (
-                        <div className="text-xs text-zinc-500 mt-1">{choice.description}</div>
-                      )}
-                      {/* Effects + lock */}
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        {lockReason && (
-                          <span className="text-[10px] text-zinc-500">🔒 {lockReason}</span>
-                        )}
-                        {!locked && choice.effects.health !== undefined && (
-                          <span className={`text-[10px] ${choice.effects.health > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            Health {choice.effects.health > 0 ? '+' : ''}{choice.effects.health}
-                          </span>
-                        )}
-                        {!locked && choice.effects.money !== undefined && (
-                          <span className={`text-[10px] ${choice.effects.money > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
-                            Wealth {choice.effects.money > 0 ? '+' : ''}{choice.effects.money}
-                          </span>
-                        )}
-                        {!locked && choice.effects.happiness !== undefined && (
-                          <span className={`text-[10px] ${choice.effects.happiness > 0 ? 'text-amber-400' : 'text-red-400'}`}>
-                            Happy {choice.effects.happiness > 0 ? '+' : ''}{choice.effects.happiness}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </motion.button>
-                );
-              })}
+                  {currentNode.title && (
+                    <h3 className="mb-1 text-base font-bold text-amber-400 md:text-lg">
+                      {currentNode.title}
+                    </h3>
+                  )}
+                  <p className="text-[14px] leading-[1.7] text-zinc-200 md:text-[15px]">
+                    <TypewriterText text={currentNode.description} />
+                  </p>
+                </motion.div>
+              </AnimatePresence>
             </div>
-          </motion.div>
+
+            {showChoices && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18 }}
+                className="min-h-0 overflow-y-auto border border-white/10 bg-black/40 px-2 py-2 sm:px-3"
+              >
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+                    Choose your path
+                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
+                    {choiceCount} options
+                  </p>
+                </div>
+                <div className="space-y-2.5">
+                  {renderedChoices}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentNode.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {currentNode.title && (
+                  <h3 className="mb-1 text-base font-bold text-amber-400 md:text-lg">
+                    {currentNode.title}
+                  </h3>
+                )}
+                <p className="text-[15px] leading-[1.7] text-zinc-200 md:text-base">
+                  <TypewriterText text={currentNode.description} />
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         )}
 
         {/* Next Button for non-decision nodes */}
