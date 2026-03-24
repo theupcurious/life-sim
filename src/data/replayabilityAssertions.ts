@@ -18,6 +18,10 @@ function assertEqual<T>(actual: T, expected: T, message: string): void {
   }
 }
 
+function clampStat(value: number): number {
+  return Math.max(0, Math.min(5, value));
+}
+
 function createCharacter(overrides: Partial<Character> = {}): Character {
   return {
     name: 'Test Player',
@@ -54,6 +58,66 @@ function appendChapter(
     existingById.set(node.id, node);
   }
   return [...existingById.values()];
+}
+
+function applyChoice(
+  nodes: StoryNode[],
+  character: Character,
+  nodeId: string,
+  choiceId: string,
+): { nodes: StoryNode[]; character: Character; nextNodeId: string } {
+  const node = nodes.find((entry) => entry.id === nodeId);
+  assertCondition(node?.choices?.length, `expected decision node "${nodeId}" with choices`);
+  const choice = node.choices!.find((entry) => entry.id === choiceId);
+  assertCondition(choice, `expected choice "${choiceId}" in node "${nodeId}"`);
+
+  if (choice.requires?.money !== undefined) {
+    assertCondition(character.money >= choice.requires.money, `expected money requirement for "${choiceId}"`);
+  }
+  if (choice.requires?.health !== undefined) {
+    assertCondition(character.health >= choice.requires.health, `expected health requirement for "${choiceId}"`);
+  }
+  if (choice.requires?.happiness !== undefined) {
+    assertCondition(character.happiness >= choice.requires.happiness, `expected happiness requirement for "${choiceId}"`);
+  }
+
+  const nextCharacter: Character = { ...character };
+  if (choice.effects.money !== undefined) {
+    nextCharacter.money = clampStat(nextCharacter.money + choice.effects.money);
+  }
+  if (choice.effects.health !== undefined) {
+    nextCharacter.health = clampStat(nextCharacter.health + choice.effects.health);
+  }
+  if (choice.effects.happiness !== undefined) {
+    nextCharacter.happiness = clampStat(nextCharacter.happiness + choice.effects.happiness);
+  }
+  if (choice.effects.occupation) {
+    nextCharacter.occupation = choice.effects.occupation;
+  }
+  if (choice.effects.location) {
+    nextCharacter.location = choice.effects.location;
+  }
+
+  const nextNodes = appendChapter(nodes, nextCharacter, nodeId, choiceId);
+  const nextNode = nextNodes.find((entry) => entry.id === choice.nextNodeId);
+  assertCondition(nextNode, `expected next node "${choice.nextNodeId}" from choice "${choiceId}"`);
+  nextCharacter.age = nextNode.age;
+
+  return {
+    nodes: nextNodes,
+    character: nextCharacter,
+    nextNodeId: choice.nextNodeId,
+  };
+}
+
+function assertAgeOrder(nodes: StoryNode[], earlierId: string, laterId: string): void {
+  const earlier = nodes.find((node) => node.id === earlierId);
+  const later = nodes.find((node) => node.id === laterId);
+  assertCondition(earlier && later, `expected nodes "${earlierId}" and "${laterId}" to exist`);
+  assertCondition(
+    earlier.age < later.age,
+    `expected "${laterId}" (${later.age}) to be later than "${earlierId}" (${earlier.age})`,
+  );
 }
 
 function assertNodeExists(nodes: StoryNode[], id: string): void {
@@ -184,6 +248,49 @@ const tests: TestCase[] = [
     },
   },
   {
+    name: 'family education beats never jump backward into midlife',
+    run: () => {
+      const character = createCharacter({
+        birthplace: 'Beijing',
+        location: 'Beijing',
+        personality: ['adventurous', 'ambitious'],
+        skills: ['business', 'languages'],
+        childhoodDream: 'freedom',
+      });
+
+      const nodes = generateLifeStoryForTest(character);
+      assertAgeOrder(nodes, 'late-parenthood-event', 'midlife-crisis');
+      assertAgeOrder(nodes, 'parent-event', 'midlife-crisis');
+      assertAgeOrder(nodes, 'shared-home-event', 'midlife-crisis-shared');
+    },
+  },
+  {
+    name: 'family-first path can still build wealth by second act',
+    run: () => {
+      let character = createCharacter({
+        birthplace: 'Beijing',
+        location: 'Beijing',
+        personality: ['analytical', 'empathetic'],
+        skills: ['technology', 'writing'],
+        childhoodDream: 'peace',
+      });
+      let nodes = generateInitialLifeStory(character);
+
+      ({ nodes, character } = applyChoice(nodes, character, 'education-decision', 'choice-university'));
+      ({ nodes, character } = applyChoice(nodes, character, 'career-decision', 'career-stable'));
+      ({ nodes, character } = applyChoice(nodes, character, 'work-life-decision-stable', 'career-stable-wl-health'));
+      ({ nodes, character } = applyChoice(nodes, character, 'relationship-decision', 'marry-young'));
+      ({ nodes, character } = applyChoice(nodes, character, 'family-decision', 'have-children'));
+      ({ nodes, character } = applyChoice(nodes, character, 'midlife-career', 'career-slow'));
+      ({ nodes, character } = applyChoice(nodes, character, 'health-reckoning-restorative', 'hr-commit'));
+      ({ nodes, character } = applyChoice(nodes, character, 'late-40s-fork', 'fork-give-back'));
+      ({ nodes, character } = applyChoice(nodes, character, 'second-act-mentor', 'sa-create-community'));
+
+      assertCondition(character.age >= 50, 'expected path to reach second-act timeframe');
+      assertCondition(character.money >= 2, `expected wealth buffer by second act, got ${character.money}`);
+    },
+  },
+  {
     name: 'staged append can reach ending without duplicate node ids',
     run: () => {
       const character = createCharacter({
@@ -208,6 +315,16 @@ const tests: TestCase[] = [
     },
   },
 ];
+
+function generateLifeStoryForTest(character: Character): StoryNode[] {
+  let nodes = generateInitialLifeStory(character);
+  nodes = appendChapter(nodes, character, 'education-decision', 'choice-travel');
+  nodes = appendChapter(nodes, character, 'career-decision-travel', 'career-global');
+  nodes = appendChapter(nodes, character, 'work-life-decision-global', 'career-global-wl-community');
+  nodes = appendChapter(nodes, character, 'relationship-decision', 'stay-single');
+  nodes = appendChapter(nodes, character, 'family-decision-independent', 'late-parenthood');
+  return nodes;
+}
 
 function runTests(): void {
   let passed = 0;

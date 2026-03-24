@@ -108,6 +108,17 @@ type EducationBranchTimeline = {
   decisionAge: number;
 };
 
+type MidlifeTimeline = {
+  startAge: number;
+  careerAge: number;
+  trackAge: number;
+  healthAge: number;
+  randomAge: number;
+  lateForkAge: number;
+  lateCareerAge: number;
+  secondActAge: number;
+};
+
 function replayEffects(
   base: Choice['effects'],
   extra: Record<string, unknown>,
@@ -362,6 +373,21 @@ function getEducationBranchTimeline(
         decisionAge: educationDecisionAge + 6,
       };
   }
+}
+
+function getMidlifeTimeline(character: Character): MidlifeTimeline {
+  const relationshipAge = getRelationshipAge(character);
+  const startAge = Math.max(40, relationshipAge + 8);
+  return {
+    startAge,
+    careerAge: startAge + 5,
+    trackAge: startAge + 7,
+    healthAge: startAge + 10,
+    randomAge: startAge + 12,
+    lateForkAge: startAge + 13,
+    lateCareerAge: startAge + 15,
+    secondActAge: startAge + 19,
+  };
 }
 
 function getFormalOccupation(character: Character, context: ReplayContext): string {
@@ -1106,7 +1132,7 @@ function generateEducationDecision(character: Character, profile: CityProfile, f
         description: 'Invest in long-term credentials and knowledge',
         nextNodeId: 'university-path',
         effects: replayEffects(
-          { money: -1, happiness: 1, occupation: 'Student' },
+          { money: 0, happiness: 1, occupation: 'Student' },
           {
             educationArc: 'elite-academic',
             tags: ['credential-track'],
@@ -1136,7 +1162,7 @@ function generateEducationDecision(character: Character, profile: CityProfile, f
         description: 'Bet on creative identity over stability',
         nextNodeId: 'art-path',
         effects: replayEffects(
-          { money: -2, happiness: 2, occupation: 'Aspiring Artist' },
+          { money: -1, happiness: 2, occupation: 'Aspiring Artist' },
           {
             educationArc: 'creative-self-made',
             tags: ['creative-risk'],
@@ -1151,7 +1177,7 @@ function generateEducationDecision(character: Character, profile: CityProfile, f
         description: 'Delay commitment and gather perspective',
         nextNodeId: 'travel-path',
         effects: replayEffects(
-          { money: -2, happiness: 2, occupation: 'Traveller' },
+          { money: -1, happiness: 2, occupation: 'Traveller' },
           {
             educationArc: 'restless-explorer',
             mobilityArc: 'global-opportunist',
@@ -1556,7 +1582,7 @@ function generateCareerChoices(
       description: `Build a durable profession as a ${stableOccupation}`,
       nextNodeId: 'stable-path',
       effects: replayEffects(
-        { money: 1, happiness: 1, occupation: stableOccupation },
+        { money: 2, happiness: 1, occupation: stableOccupation },
         {
           careerArc: 'stable-craft',
           tags: ['steady-builder'],
@@ -1574,7 +1600,7 @@ function generateCareerChoices(
       description: `Try to make it as a ${creativeOccupation}`,
       nextNodeId: 'creative-career-path',
       effects: replayEffects(
-        { money: -1, happiness: 2, occupation: creativeOccupation },
+        { money: 0, happiness: 2, occupation: creativeOccupation },
         {
           careerArc: 'creative-precarity',
           tags: ['creative-identity'],
@@ -1593,7 +1619,7 @@ function generateCareerChoices(
       description: `Trade stability for ownership as a ${entrepreneurOccupation}`,
       nextNodeId: 'entrepreneur-path',
       effects: replayEffects(
-        { money: -2, happiness: 1, occupation: entrepreneurOccupation },
+        { money: -1, happiness: 1, occupation: entrepreneurOccupation },
         {
           careerArc: 'founder-volatility',
           tags: ['ownership-bet'],
@@ -1601,7 +1627,7 @@ function generateCareerChoices(
           unlockedChapterPools: ['founder-volatility'],
         },
       ),
-      requires: { money: 2 },
+      requires: { money: 1 },
     });
   }
 
@@ -1612,7 +1638,7 @@ function generateCareerChoices(
       description: `Use mobility and networks to work across borders as a ${globalOccupation}`,
       nextNodeId: 'global-path',
       effects: replayEffects(
-        { money: 1, happiness: 1, occupation: globalOccupation },
+        { money: 2, happiness: 1, occupation: globalOccupation },
         {
           careerArc: 'global-operator',
           mobilityArc: 'migrant',
@@ -1707,7 +1733,7 @@ function generateWorkLifeDecisions(character: Character, profile: CityProfile): 
         description: 'Channel ambition into something personal and risky',
         nextNodeId: getPostCareerNodeId(variant.track),
         effects: replayEffects(
-          { money: -1, happiness: 2 },
+          { money: 0, happiness: 2 },
           {
             delayedConsequences: ['second-act-seed'],
             tags: ['self-directed'],
@@ -1720,7 +1746,7 @@ function generateWorkLifeDecisions(character: Character, profile: CityProfile): 
         description: 'Invest in the body and mind before the next chapter',
         nextNodeId: getPostCareerNodeId(variant.track),
         effects: replayEffects(
-          { health: 2, happiness: 1, money: -1 },
+          { health: 2, happiness: 1, money: 0 },
           {
             healthArc: 'disciplined',
             delayedConsequences: ['recovery-dividend'],
@@ -1974,13 +2000,10 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
 
   // All downstream ages are anchored to relAge so the timeline never goes
   // backward regardless of which relationship path the character is on.
-  // Midlife currently starts at 40, so relationship/family beats are
-  // compressed when relAge is late (for example independent-biased runs).
-  const midlifeStartAge = 40;
   const outcomeAge = relAge + 1; // married-young / single-focused / cohabitation
-  const familyAge = Math.min(relAge + 3, midlifeStartAge - 3);
-  const familyPath1 = Math.min(relAge + 5, midlifeStartAge - 2);
-  const familyPath2 = Math.min(relAge + 7, midlifeStartAge - 1);
+  const familyAge = relAge + 3;
+  const familyPath1 = relAge + 5;
+  const familyPath2 = relAge + 7;
 
   nodes.push({
     id: 'relationship-decision',
@@ -1996,7 +2019,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
         description: 'Choose commitment and shared long-term planning',
         nextNodeId: 'married-young',
         effects: replayEffects(
-          { happiness: 2, money: -1 },
+          { happiness: 2, money: 0 },
           {
             relationshipArc: 'early-family',
             delayedConsequences: ['shared-obligations'],
@@ -2024,7 +2047,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
         description: 'Commit deeply without formal marriage yet',
         nextNodeId: 'cohabitation',
         effects: replayEffects(
-          { happiness: 1 },
+          { happiness: 1, money: 1 },
           {
             relationshipArc: 'late-commitment',
             delayedConsequences: ['shared-home'],
@@ -2095,7 +2118,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
         description: 'Choose a demanding but deeply relational path',
         nextNodeId: 'parent-path',
         effects: replayEffects(
-          { happiness: 2, money: -2, health: -1 },
+          { happiness: 2, money: -1, health: -1 },
           {
             familyArc: 'provider',
             delayedConsequences: ['caregiving-load'],
@@ -2124,7 +2147,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
         description: 'Build family through intention and care',
         nextNodeId: 'adoption-path',
         effects: replayEffects(
-          { happiness: 2, money: -1 },
+          { happiness: 2, money: 0 },
           {
             familyArc: 'caregiver',
             delayedConsequences: ['bureaucratic-delay'],
@@ -2168,7 +2191,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
         description: 'Re-open the question of raising a child on different terms',
         nextNodeId: 'late-parenthood-path',
         effects: replayEffects(
-          { happiness: 1, money: -1 },
+          { happiness: 1, money: 0 },
           {
             familyArc: 'caregiver',
             delayedConsequences: ['late-parenthood-pressure'],
@@ -2211,7 +2234,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
         description: 'Anchor the partnership and build a stable home',
         nextNodeId: 'shared-home-path',
         effects: replayEffects(
-          { happiness: 2, money: -1 },
+          { happiness: 2, money: 0 },
           {
             familyArc: 'provider',
             delayedConsequences: ['shared-obligations'],
@@ -2239,7 +2262,7 @@ function generateRelationshipNodes(character: Character, profile: CityProfile): 
         description: 'Choose family through intention, structure, and care',
         nextNodeId: 'adoption-path',
         effects: replayEffects(
-          { happiness: 2, money: -1 },
+          { happiness: 2, money: 0 },
           {
             familyArc: 'caregiver',
             delayedConsequences: ['bureaucratic-delay'],
@@ -2433,14 +2456,14 @@ function createHealthReckoningChoices(nextNodeId: string): Choice[] {
       text: 'Commit to Fitness',
       description: 'Overhaul diet, sleep, and movement as a daily practice',
       nextNodeId,
-      effects: { health: 2, money: -1 },
+      effects: { health: 2, money: 0 },
     },
     {
       id: 'hr-therapy',
       text: 'Invest in Mental Health',
       description: 'Finally address the emotional weight carried for decades',
       nextNodeId,
-      effects: { happiness: 2, money: -1 },
+      effects: { happiness: 2, money: 0 },
     },
     {
       id: 'hr-accept',
@@ -2462,16 +2485,17 @@ function createHealthReckoningChoices(nextNodeId: string): Choice[] {
 function generateMidlifeNodes(character: Character, profile: CityProfile, ft: FlavorTracker): StoryNode[] {
   const nodes: StoryNode[] = [];
   const context = buildReplayContext(character, profile);
+  const timeline = getMidlifeTimeline(character);
 
-  const eraAt40 = ft.flavor(profile.city, character.birthYear + 40);
+  const eraAt40 = ft.flavor(profile.city, character.birthYear + timeline.startAge);
   nodes.push({
     id: 'midlife-crisis',
     type: 'event',
-    year: character.birthYear + 40,
-    age: 40,
-    title: 'The Big Four-Oh',
+    year: character.birthYear + timeline.startAge,
+    age: timeline.startAge,
+    title: timeline.startAge === 40 ? 'The Big Four-Oh' : 'Midlife Reckoning',
     description: [
-      `At 40, ${character.name} takes stock of what was gained and what was deferred. ${profile.celebrationNuance} Old dreams are reevaluated against lived reality.`,
+      `At ${timeline.startAge}, ${character.name} takes stock of what was gained and what was deferred. ${profile.celebrationNuance} Old dreams are reevaluated against lived reality.`,
       eraAt40,
     ].filter(Boolean).join(' '),
     imagePrompt: `pixel art midlife reflection scene in ${profile.city}`,
@@ -2484,11 +2508,11 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'midlife-crisis-independent',
     type: 'event',
-    year: character.birthYear + 40,
-    age: 40,
+    year: character.birthYear + timeline.startAge,
+    age: timeline.startAge,
     title: 'The Self-Authored Middle',
     description: [
-      `${character.name} reaches 40 and realizes freedom still has to be designed, not merely protected. The life built outside convention now demands its own rituals, responsibilities, and sources of meaning.`,
+      `${character.name} reaches ${timeline.startAge} and realizes freedom still has to be designed, not merely protected. The life built outside convention now demands its own rituals, responsibilities, and sources of meaning.`,
       eraAt40,
     ].filter(Boolean).join(' '),
     imagePrompt: `pixel art midlife urban solitude scene in ${profile.city}`,
@@ -2501,11 +2525,11 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'midlife-crisis-shared',
     type: 'event',
-    year: character.birthYear + 40,
-    age: 40,
+    year: character.birthYear + timeline.startAge,
+    age: timeline.startAge,
     title: 'Shared Weight',
     description: [
-      `${character.name} reaches 40 carrying not just personal ambition, but the accumulated weight of partnership, care, and mutual dependence. The question now is how to keep tenderness alive inside structure.`,
+      `${character.name} reaches ${timeline.startAge} carrying not just personal ambition, but the accumulated weight of partnership, care, and mutual dependence. The question now is how to keep tenderness alive inside structure.`,
       eraAt40,
     ].filter(Boolean).join(' '),
     imagePrompt: `pixel art midlife domestic reflection scene in ${profile.city}`,
@@ -2518,8 +2542,8 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'midlife-career',
     type: 'decision',
-    year: character.birthYear + 45,
-    age: 45,
+    year: character.birthYear + timeline.careerAge,
+    age: timeline.careerAge,
     title: 'Peak or Pivot?',
     description: `${character.name} reaches a professional plateau in ${profile.city}. ${context.chapterPools.includes('global-migrant') ? 'The option of leaving again is still real.' : 'The shape of the next decade will be chosen more deliberately.'} Continue maximizing status, pivot to new meaning, reclaim time, go international, or trade security for independence.`,
     choices: [
@@ -2541,7 +2565,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
         description: 'Reset identity — new field, new colleagues, new stakes',
         nextNodeId: 'midlife-track-reinvent',
         effects: replayEffects(
-          { money: -1, happiness: 2 },
+          { money: 0, happiness: 2 },
           {
             delayedConsequences: ['reinvention-dividend'],
             tags: ['late-bloomer'],
@@ -2554,7 +2578,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
         description: 'Trade income and status for time and health',
         nextNodeId: 'midlife-track-slow',
         effects: replayEffects(
-          { money: -1, happiness: 2, health: 1 },
+          { money: 0, happiness: 2, health: 1 },
           {
             healthArc: 'recovery',
             delayedConsequences: ['slower-richer-life'],
@@ -2580,7 +2604,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
         description: 'Leave employment for freelance or consulting autonomy',
         nextNodeId: 'midlife-track-freelance',
         effects: replayEffects(
-          { money: 0, happiness: 2, health: 1 },
+          { money: 1, happiness: 2, health: 1 },
           {
             delayedConsequences: ['portfolio-life'],
             tags: ['independent-operator'],
@@ -2607,7 +2631,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
   }> = [
     {
       id: 'midlife-track-continue',
-      age: 47,
+      age: timeline.trackAge,
       title: 'The Compounding Years',
       description: `${character.name} chooses continuity over novelty. Seniority deepens, obligations compound, and the cost of being the reliable person grows less visible but more total.`,
       category: 'career',
@@ -2617,7 +2641,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
     },
     {
       id: 'midlife-track-reinvent',
-      age: 47,
+      age: timeline.trackAge,
       title: 'A New Apprenticeship',
       description: `${character.name} becomes a beginner again on purpose. The ego bruise is real, but so is the electric feeling of building a different future before it feels too late.`,
       category: 'career',
@@ -2627,7 +2651,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
     },
     {
       id: 'midlife-track-slow',
-      age: 47,
+      age: timeline.trackAge,
       title: 'Recovery as Practice',
       description: `${character.name} stops treating recovery as a reward and starts treating it as infrastructure. The new pace is awkward at first, then clarifying.`,
       category: 'health',
@@ -2637,7 +2661,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
     },
     {
       id: 'midlife-track-global',
-      age: 47,
+      age: timeline.trackAge,
       title: 'A Larger Radius',
       description: `${character.name} expands life across airports, projects, and cultures. The horizon widens, but fatigue and distance become structural features of ambition.`,
       category: 'career',
@@ -2647,7 +2671,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
     },
     {
       id: 'midlife-track-freelance',
-      age: 47,
+      age: timeline.trackAge,
       title: 'Running the Whole Portfolio',
       description: `${character.name} trades hierarchy for a portfolio life. The freedom is real, but so is the constant need to self-direct every decision, invoice, and boundary.`,
       category: 'career',
@@ -2675,8 +2699,8 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
     nodes.push({
       id: track.nextNodeId,
       type: 'decision',
-      year: character.birthYear + 50,
-      age: 50,
+      year: character.birthYear + timeline.healthAge,
+      age: timeline.healthAge,
       title: track.healthTitle,
       description: track.healthDescription,
       choices: createHealthReckoningChoices(healthBridgeId),
@@ -2687,8 +2711,11 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
     });
   });
 
+  const randomMidlifeBase = generateRandomEvent('midlife', character, profile);
   const randomMidlife = {
-    ...generateRandomEvent('midlife', character, profile),
+    ...randomMidlifeBase,
+    year: character.birthYear + timeline.randomAge,
+    age: timeline.randomAge,
     nextNodeIds: ['late-40s-fork'],
   };
   nodes.push(randomMidlife);
@@ -2696,17 +2723,17 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
   nodes.push({
     id: 'late-40s-fork',
     type: 'decision',
-    year: character.birthYear + 53,
-    age: 53,
+    year: character.birthYear + timeline.lateForkAge,
+    age: timeline.lateForkAge,
     title: 'The Second Half',
-    description: `Past 50, the math changes. There are probably fewer years ahead than behind. The body has delivered its invoice. ${character.name} must decide what the remaining fuel should be spent on.`,
+    description: `Past ${timeline.healthAge}, the math changes. There are probably fewer years ahead than behind. The body has delivered its invoice. ${character.name} must decide what the remaining fuel should be spent on.`,
     choices: [
       {
         id: 'fork-give-back',
         text: 'Give Back',
         description: 'Shift focus to mentoring, teaching, or community',
         nextNodeId: 'late-career-alt',
-        effects: { happiness: 2, money: -1 },
+        effects: { happiness: 2, money: 0 },
       },
       {
         id: 'fork-ambition',
@@ -2720,7 +2747,7 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
         text: 'The Slow Life',
         description: 'Downshift to prioritize peace and nature',
         nextNodeId: 'slow-life-path',
-        effects: { health: 2, happiness: 1, money: -2 },
+        effects: { health: 2, happiness: 1, money: -1 },
       }
     ],
     imagePrompt: `pixel art late 40s crossroads scene in ${profile.city}`,
@@ -2734,12 +2761,18 @@ function generateMidlifeNodes(character: Character, profile: CityProfile, ft: Fl
 
 function generateLateLifeNodes(character: Character, lifeExpectancy: number, profile: CityProfile): StoryNode[] {
   const nodes: StoryNode[] = [];
+  const timeline = getMidlifeTimeline(character);
+  const retirementAge = Math.min(
+    lifeExpectancy - 10,
+    Math.max(timeline.secondActAge + 6, timeline.lateCareerAge + 8),
+  );
+  const healthDeclineAge = Math.min(lifeExpectancy - 2, retirementAge + 10);
 
   nodes.push({
     id: 'late-career-1',
     type: 'event',
-    year: character.birthYear + 55,
-    age: 55,
+    year: character.birthYear + timeline.lateCareerAge,
+    age: timeline.lateCareerAge,
     title: 'Peak Earning Years',
     description: `${character.name} hits maximum capacity and influence. The work is demanding but natural. ${profile.city} respects seniority, though the pace requires deliberate energy management.`,
     nextNodeIds: ['second-act-ambition'],
@@ -2752,8 +2785,8 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
   nodes.push({
     id: 'late-career-alt',
     type: 'event',
-    year: character.birthYear + 55,
-    age: 55,
+    year: character.birthYear + timeline.lateCareerAge,
+    age: timeline.lateCareerAge,
     title: 'The Mentor',
     description: `Instead of chasing the next title, ${character.name} becomes the person others come to for advice. The satisfaction shifts from personal achievement to watching younger people succeed.`,
     nextNodeIds: ['second-act-mentor'],
@@ -2766,8 +2799,8 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
   nodes.push({
     id: 'slow-life-path',
     type: 'event',
-    year: character.birthYear + 55,
-    age: 55,
+    year: character.birthYear + timeline.lateCareerAge,
+    age: timeline.lateCareerAge,
     title: 'Quiet Adjustments',
     description: `${character.name} deliberately scales back. The calendar clears. Time becomes abundant for the first time in decades. The silence in ${profile.city} is jarring at first, then deeply restorative.`,
     nextNodeIds: ['second-act-rest'],
@@ -2780,17 +2813,17 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
   nodes.push({
     id: 'second-act-ambition',
     type: 'decision',
-    year: character.birthYear + 59,
-    age: 59,
+    year: character.birthYear + timeline.secondActAge,
+    age: timeline.secondActAge,
     title: 'Legacy or Velocity',
-    description: `At 59, ${character.name} still has momentum. The real decision is whether to convert it into legacy, wealth, or experiences that work never had room for.`,
+    description: `At ${timeline.secondActAge}, ${character.name} still has momentum. The real decision is whether to convert it into legacy, wealth, or experiences that work never had room for.`,
     choices: [
       {
         id: 'sa-create',
         text: 'Build the Signature Project',
         description: 'Channel hard-earned leverage into one lasting piece of work',
         nextNodeId: 'retirement',
-        effects: { happiness: 2, money: -1 },
+        effects: { happiness: 2, money: 0 },
       },
       {
         id: 'sa-wealth',
@@ -2804,7 +2837,7 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
         text: 'Cash Out and Travel',
         description: 'Spend accumulated resources on range, not status',
         nextNodeId: 'retirement',
-        effects: { happiness: 2, money: -2 },
+        effects: { happiness: 2, money: -1 },
       },
     ],
     imagePrompt: `pixel art late 50s reflection scene in ${profile.city}`,
@@ -2816,10 +2849,10 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
   nodes.push({
     id: 'second-act-mentor',
     type: 'decision',
-    year: character.birthYear + 59,
-    age: 59,
+    year: character.birthYear + timeline.secondActAge,
+    age: timeline.secondActAge,
     title: 'Stewardship',
-    description: `At 59, ${character.name} realizes influence can now be measured by what keeps going after retirement. The second act becomes a question of stewardship.`,
+    description: `At ${timeline.secondActAge}, ${character.name} realizes influence can now be measured by what keeps going after retirement. The second act becomes a question of stewardship.`,
     choices: [
       {
         id: 'sa-mentor',
@@ -2833,14 +2866,14 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
         text: 'Build a Community Institution',
         description: 'Create something local and durable that outlives a job title',
         nextNodeId: 'retirement',
-        effects: { happiness: 2, money: -1 },
+        effects: { happiness: 2, money: 0 },
       },
       {
         id: 'sa-travel-gently',
         text: 'Travel While Staying Useful',
         description: 'Combine curiosity with slower, more intentional contribution',
         nextNodeId: 'retirement',
-        effects: { happiness: 1, money: -1 },
+        effects: { happiness: 1, money: 0 },
       },
     ],
     imagePrompt: `pixel art mentoring and community scene in ${profile.city}`,
@@ -2852,10 +2885,10 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
   nodes.push({
     id: 'second-act-rest',
     type: 'decision',
-    year: character.birthYear + 59,
-    age: 59,
+    year: character.birthYear + timeline.secondActAge,
+    age: timeline.secondActAge,
     title: 'A Smaller, Better Life',
-    description: `At 59, ${character.name} no longer mistakes fullness for meaning. The second act is about choosing a scale of life the body, mind, and spirit can actually enjoy.`,
+    description: `At ${timeline.secondActAge}, ${character.name} no longer mistakes fullness for meaning. The second act is about choosing a scale of life the body, mind, and spirit can actually enjoy.`,
     choices: [
       {
         id: 'sa-garden',
@@ -2869,14 +2902,14 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
         text: 'Make Small Beautiful Things',
         description: 'Create without needing recognition or scale',
         nextNodeId: 'retirement',
-        effects: { happiness: 2, money: -1 },
+        effects: { happiness: 2, money: 0 },
       },
       {
         id: 'sa-wander',
         text: 'Wander Slowly',
         description: 'Travel at a human pace before the body narrows further',
         nextNodeId: 'retirement',
-        effects: { happiness: 2, money: -2 },
+        effects: { happiness: 2, money: -1 },
       },
     ],
     imagePrompt: `pixel art late 50s quiet-life scene in ${profile.city}`,
@@ -2888,8 +2921,8 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
   nodes.push({
     id: 'retirement',
     type: 'event',
-    year: character.birthYear + 65,
-    age: 65,
+    year: character.birthYear + retirementAge,
+    age: retirementAge,
     title: 'Retirement',
     description: `Work obligations fall away and rhythm changes. Days are now marked by health routines, old friends, and simpler pleasures like ${profile.streetFood}.`,
     imagePrompt: `pixel art retirement neighborhood day in ${profile.city}`,
@@ -2901,10 +2934,10 @@ function generateLateLifeNodes(character: Character, lifeExpectancy: number, pro
   nodes.push({
     id: 'health-decline',
     type: 'event',
-    year: character.birthYear + 75,
-    age: 75,
+    year: character.birthYear + healthDeclineAge,
+    age: healthDeclineAge,
     title: 'Golden Years',
-    description: `At 75, energy fades unpredictably, yet perspective deepens. ${character.name} learns to measure wealth in time, attention, and the people who still show up.`,
+    description: `At ${healthDeclineAge}, energy fades unpredictably, yet perspective deepens. ${character.name} learns to measure wealth in time, attention, and the people who still show up.`,
     imagePrompt: `pixel art late-life quiet evening in ${profile.city}`,
     position: { x: 0, y: 0 },
     visited: false,
