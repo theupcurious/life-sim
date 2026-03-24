@@ -6,9 +6,18 @@ interface CitySkylineProps {
   foregroundColor: string;
   backgroundColor: string;
   isNight: boolean;
+  windowsPatternId?: string;
+  maskIdSuffix?: string;
 }
 
-const CitySkyline: React.FC<CitySkylineProps> = ({ city, foregroundColor, backgroundColor, isNight }) => {
+const CitySkyline: React.FC<CitySkylineProps> = ({
+  city,
+  foregroundColor,
+  backgroundColor,
+  isNight,
+  windowsPatternId = 'night-windows-pattern',
+  maskIdSuffix = 'base',
+}) => {
   // We use paths scaled approximately to a 96x54 viewport where the ground sits around y=46.
   
   const renderBackgroundPaths = () => {
@@ -186,13 +195,15 @@ const CitySkyline: React.FC<CitySkylineProps> = ({ city, foregroundColor, backgr
     }
   };
 
+  const skylineMaskId = `skyline-mask-${city}-${maskIdSuffix}`;
+
   return (
     <g>
       {renderBackgroundPaths()}
       {/* 
         We use a mask to naturally apply the twinkle animation only inside the foreground shape 
       */}
-      <mask id={`skyline-mask-${city}`}>
+      <mask id={skylineMaskId}>
         <rect x="0" y="0" width="100" height="100" fill="black" />
         <g fill="white">
           {renderForegroundPaths()}
@@ -209,8 +220,8 @@ const CitySkyline: React.FC<CitySkylineProps> = ({ city, foregroundColor, backgr
           y="0" 
           width="96" 
           height="54" 
-          fill="url(#night-windows-pattern)" 
-          mask={`url(#skyline-mask-${city})`} 
+          fill={`url(#${windowsPatternId})`}
+          mask={`url(#${skylineMaskId})`}
           className="anim-twinkle-fast"
         />
       )}

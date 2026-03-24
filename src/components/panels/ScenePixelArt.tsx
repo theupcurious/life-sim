@@ -51,6 +51,11 @@ const SKY_STOPS: { age: number; top: string; bottom: string }[] = [
   { age: 82, top: '#020617', bottom: '#1e1b4b' }, // night — final years
 ];
 
+const SCENE_HEIGHT = 54;
+const SEGMENT_WIDTH = 96;
+const SEGMENT_COUNT = 3;
+const SCENE_WIDTH = SEGMENT_WIDTH * SEGMENT_COUNT;
+
 function getSkyColors(age: number) {
   if (age <= SKY_STOPS[0].age) return { top: SKY_STOPS[0].top, bottom: SKY_STOPS[0].bottom };
   const last = SKY_STOPS[SKY_STOPS.length - 1];
@@ -75,14 +80,14 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
     const rng = mulberry32(hashString(`${birthplace}-${node.id}-${node.year}-${node.type}`));
 
     const generatedStars = Array.from({ length: 30 }, () => ({
-      x: Math.floor(rng() * 96),
+      x: Math.floor(rng() * SCENE_WIDTH),
       y: Math.floor(rng() * 22),
       alpha: 0.2 + rng() * 0.8,
       delay: rng() * 4,
     }));
 
     const generatedClouds = Array.from({ length: 3 }, () => ({
-      x: Math.floor(rng() * 96) - 20,
+      x: Math.floor(rng() * SCENE_WIDTH) - 20,
       y: Math.floor(rng() * 12) + 2,
       width: 10 + Math.floor(rng() * 16),
       speed: 50 + rng() * 60,
@@ -90,19 +95,19 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
       delay: rng() * -50,
     }));
 
-    const particleCount = 15;
+    const particleCount = 12;
     const generatedParticles = Array.from({ length: particleCount }, () => ({
-      x: Math.floor(rng() * 96),
-      y: Math.floor(rng() * 54),
+      x: Math.floor(rng() * SCENE_WIDTH),
+      y: Math.floor(rng() * SCENE_HEIGHT),
       speed: 1 + rng() * 3,
       delay: rng() * -10,
       alpha: 0.3 + rng() * 0.5,
     }));
 
-    // Foreground trees/posts — 2-4 small elements
-    const treeCount = 2 + Math.floor(rng() * 3);
+    // Foreground trees/posts distributed across the panorama
+    const treeCount = 7 + Math.floor(rng() * 4);
     const generatedTrees = Array.from({ length: treeCount }, () => ({
-      x: Math.floor(rng() * 90) + 3,
+      x: Math.floor(rng() * (SCENE_WIDTH - 6)) + 3,
       type: rng() > 0.5 ? 'tree' : 'post',
       height: 4 + Math.floor(rng() * 5),
     }));
@@ -133,7 +138,7 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
       case 'relationship': return { pColor: '#fb7185', pClass: 'anim-float' };
       case 'health':       return { pColor: '#34d399', pClass: 'anim-pulse-slow' };
       case 'childhood':    return { pColor: '#ffffff', pClass: 'anim-drift-up' };
-      default:             return { pColor: profile.palette.accent, pClass: 'anim-drift' };
+      default:             return { pColor: profile.palette.accent, pClass: 'anim-twinkle' };
     }
   };
   const theme = getCategoryTheme();
@@ -382,12 +387,13 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
 
   const renderGround = () => {
     if (groundType === 'grass' && age < 40) {
+      const grassTufts = Array.from({ length: Math.floor(SCENE_WIDTH / 14) }, (_, i) => 5 + i * 14);
       return (
         <g>
-          <rect x="0" y="42" width="96" height="12" fill="#1a2e1a" />
-          <rect x="0" y="42" width="96" height="1" fill="#2d5a2d" opacity="0.6" />
+          <rect x="0" y="42" width={SCENE_WIDTH} height="12" fill="#1a2e1a" />
+          <rect x="0" y="42" width={SCENE_WIDTH} height="1" fill="#2d5a2d" opacity="0.6" />
           {/* Grass tufts */}
-          {[5, 15, 28, 42, 58, 72, 85].map((gx, i) => (
+          {grassTufts.map((gx, i) => (
             <g key={`grass-${i}`}>
               <rect x={gx} y={41} width="1" height="2" fill="#3a7a3a" opacity="0.7" />
               <rect x={gx + 1} y={40} width="1" height="3" fill="#2d6a2d" opacity="0.6" />
@@ -398,14 +404,15 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
     }
 
     // Pavement with subtle lane markings
+    const roadDashes = Array.from({ length: Math.floor((SCENE_WIDTH - 10) / 15) }, (_, i) => 10 + i * 15);
     return (
       <g>
-        <rect x="0" y="42" width="96" height="12" fill={groundBase} />
-        <rect x="0" y="42" width="96" height="1" fill="#333" opacity="0.5" />
+        <rect x="0" y="42" width={SCENE_WIDTH} height="12" fill={groundBase} />
+        <rect x="0" y="42" width={SCENE_WIDTH} height="1" fill="#333" opacity="0.5" />
         {/* Curb line */}
-        <rect x="0" y="43" width="96" height="0.5" fill="#555" opacity="0.3" />
+        <rect x="0" y="43" width={SCENE_WIDTH} height="0.5" fill="#555" opacity="0.3" />
         {/* Dashes */}
-        {[10, 25, 40, 55, 70, 85].map((dx, i) => (
+        {roadDashes.map((dx, i) => (
           <rect key={`dash-${i}`} x={dx} y={48} width="4" height="0.5" fill="#444" opacity="0.3" />
         ))}
       </g>
@@ -441,169 +448,121 @@ const ScenePixelArt: React.FC<ScenePixelArtProps> = ({ node, birthplace }) => {
     );
   };
 
-  const renderSvgScene = (
-    suffix: string,
-    className: string,
-    preserveAspectRatio: string,
-    style?: React.CSSProperties,
-  ) => {
-    const gradientId = `scene-sky-${sceneId}-${suffix}`;
-    const windowsPatternId = `night-windows-pattern-${sceneId}-${suffix}`;
-    const skylineMaskId = `skyline-mask-${profile.city}-${sceneId}-${suffix}`;
+  const skyGradientId = `scene-sky-${sceneId}`;
+  const windowsPatternId = `night-windows-pattern-${sceneId}`;
 
-    return (
-      <svg
-        viewBox="0 0 96 54"
-        className={className}
-        style={style}
-        preserveAspectRatio={preserveAspectRatio}
-        aria-label={`Pixel art scene for ${node.title ?? node.type}`}
-      >
-        <defs>
-          <style>
-            {`
-              .anim-twinkle { animation: twinkle 3s infinite alternate ease-in-out; }
-              .anim-cloud { animation: cloudMove linear infinite; }
-              .anim-rain { animation: rainFall linear infinite; }
-              .anim-float { animation: floataround 4s infinite ease-in-out; }
-              .anim-drift { animation: drift 10s linear infinite; }
-              .anim-drift-up { animation: driftUp 8s linear infinite; }
-              .anim-pulse-slow { animation: slowPulse 2s infinite alternate; }
+  return (
+    <svg
+      viewBox={`0 0 ${SCENE_WIDTH} ${SCENE_HEIGHT}`}
+      className="h-full w-full block"
+      style={{ imageRendering: 'pixelated', shapeRendering: 'crispEdges' }}
+      preserveAspectRatio="xMidYMid slice"
+      aria-label={`Pixel art scene for ${node.title ?? node.type}`}
+    >
+      <defs>
+        <style>
+          {`
+            .anim-twinkle { animation: twinkle 3s infinite alternate ease-in-out; }
+            .anim-cloud { animation: cloudMove linear infinite; }
+            .anim-rain { animation: rainFall linear infinite; }
+            .anim-float { animation: floataround 4s infinite ease-in-out; }
+            .anim-drift-up { animation: driftUp 8s linear infinite; }
+            .anim-pulse-slow { animation: slowPulse 2s infinite alternate; }
 
-              @keyframes twinkle { 0% { opacity: 0.1; } 100% { opacity: 1; } }
-              @keyframes cloudMove { 0% { transform: translateX(0); } 100% { transform: translateX(116px); } }
-              @keyframes rainFall { 0% { transform: translateY(0); } 100% { transform: translateY(54px); } }
-              @keyframes drift { 0% { transform: translate(0, 0); } 50% { transform: translate(10px, -5px); } 100% { transform: translate(20px, 0); } }
-              @keyframes driftUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-30px) rotate(10deg); opacity: 0; } }
-              @keyframes floataround { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-              @keyframes slowPulse { 0% { opacity: 0.7; } 100% { opacity: 1; } }
-            `}
-          </style>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={skyColors.top} />
-            <stop offset="100%" stopColor={skyColors.bottom} />
-          </linearGradient>
-          <pattern id={windowsPatternId} x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse">
-            <rect x="1" y="1" width="1" height="1" fill={profile.palette.neon} opacity="0.8" />
-          </pattern>
-          <mask id={skylineMaskId}>
-            <rect x="0" y="0" width="100" height="100" fill="black" />
-            <g fill="white">
-              <CitySkyline
-                city={profile.city}
-                foregroundColor={profile.palette.skylineDark}
-                backgroundColor={profile.palette.skylineLight}
-                isNight={isNight}
-              />
-            </g>
-          </mask>
-        </defs>
+            @keyframes twinkle { 0% { opacity: 0.1; } 100% { opacity: 1; } }
+            @keyframes cloudMove { 0% { transform: translateX(0); } 100% { transform: translateX(${SCENE_WIDTH + 20}px); } }
+            @keyframes rainFall { 0% { transform: translateY(0); } 100% { transform: translateY(${SCENE_HEIGHT}px); } }
+            @keyframes driftUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-30px) rotate(10deg); opacity: 0; } }
+            @keyframes floataround { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+            @keyframes slowPulse { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+          `}
+        </style>
+        <linearGradient id={skyGradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={skyColors.top} />
+          <stop offset="100%" stopColor={skyColors.bottom} />
+        </linearGradient>
+        <pattern id={windowsPatternId} x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse">
+          <rect x="1" y="1" width="1" height="1" fill={profile.palette.neon} opacity="0.8" />
+        </pattern>
+      </defs>
 
-        <rect x="0" y="0" width="96" height="54" fill={`url(#${gradientId})`} />
+      <rect x="0" y="0" width={SCENE_WIDTH} height={SCENE_HEIGHT} fill={`url(#${skyGradientId})`} />
 
-        {isNight &&
-          stars.map((star, i) => (
-            <rect
-              key={`star-${suffix}-${i}`}
-              x={star.x}
-              y={star.y}
-              width="1"
-              height="1"
-              fill="#ffffff"
-              opacity={star.alpha}
-              className="anim-twinkle"
-              style={{ animationDelay: `${star.delay}s`, animationDuration: `${2 + star.delay}s` }}
-            />
-          ))}
-
-        {!isNight &&
-          clouds.map((cloud, i) => (
-            <g key={`cloud-${suffix}-${i}`}>
-              <rect
-                x={cloud.x}
-                y={cloud.y}
-                width={cloud.width}
-                height="2"
-                rx="1"
-                fill="#ffffff"
-                opacity={cloud.opacity}
-                className="anim-cloud"
-                style={{ animationDuration: `${cloud.speed}s`, animationDelay: `${cloud.delay}s` }}
-              />
-              <rect
-                x={cloud.x + 2}
-                y={cloud.y - 1}
-                width={cloud.width - 4}
-                height="1"
-                fill="#ffffff"
-                opacity={cloud.opacity * 0.7}
-                className="anim-cloud"
-                style={{ animationDuration: `${cloud.speed}s`, animationDelay: `${cloud.delay}s` }}
-              />
-            </g>
-          ))}
-
-        <CitySkyline
-          city={profile.city}
-          foregroundColor={profile.palette.skylineDark}
-          backgroundColor={profile.palette.skylineLight}
-          isNight={isNight}
-        />
-
-        {renderGround()}
-        {renderForeground()}
-        {renderSceneElement()}
-
-        {particles.map((particle, i) => (
+      {isNight &&
+        stars.map((star, i) => (
           <rect
-            key={`particle-${suffix}-${i}`}
-            x={particle.x}
-            y={particle.y}
+            key={`star-${i}`}
+            x={star.x}
+            y={star.y}
             width="1"
             height="1"
-            fill={theme.pColor}
-            opacity={particle.alpha}
-            className={theme.pClass}
-            style={{ animationDuration: `${particle.speed * 3}s`, animationDelay: `${particle.delay}s` }}
+            fill="#ffffff"
+            opacity={star.alpha}
+            className="anim-twinkle"
+            style={{ animationDelay: `${star.delay}s`, animationDuration: `${2 + star.delay}s` }}
           />
         ))}
 
-        {isNight && (
-          <rect
-            x="0"
-            y="0"
-            width="96"
-            height="54"
-            fill={`url(#${windowsPatternId})`}
-            mask={`url(#${skylineMaskId})`}
-            className="anim-twinkle-fast"
-          />
-        )}
-      </svg>
-    );
-  };
+      {!isNight &&
+        clouds.map((cloud, i) => (
+          <g key={`cloud-${i}`}>
+            <rect
+              x={cloud.x}
+              y={cloud.y}
+              width={cloud.width}
+              height="2"
+              rx="1"
+              fill="#ffffff"
+              opacity={cloud.opacity}
+              className="anim-cloud"
+              style={{ animationDuration: `${cloud.speed}s`, animationDelay: `${cloud.delay}s` }}
+            />
+            <rect
+              x={cloud.x + 2}
+              y={cloud.y - 1}
+              width={cloud.width - 4}
+              height="1"
+              fill="#ffffff"
+              opacity={cloud.opacity * 0.7}
+              className="anim-cloud"
+              style={{ animationDuration: `${cloud.speed}s`, animationDelay: `${cloud.delay}s` }}
+            />
+          </g>
+        ))}
 
-  return (
-    <div
-      className="relative h-full w-full overflow-hidden"
-      style={{
-        backgroundImage: `linear-gradient(to bottom, ${skyColors.top} 0%, ${skyColors.bottom} 76%, ${groundBase} 76%, ${groundBase} 100%)`,
-      }}
-    >
-      {renderSvgScene(
-        'bg',
-        'absolute inset-0 h-full w-full block opacity-70',
-        'none',
-        { imageRendering: 'pixelated', shapeRendering: 'crispEdges' },
-      )}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-black/10" />
-      {renderSvgScene(
-        'fg',
-        'absolute inset-y-0 left-1/2 block h-full w-auto max-w-none -translate-x-1/2',
-        'xMidYMid meet',
-        { imageRendering: 'pixelated', shapeRendering: 'crispEdges' },
-      )}
-    </div>
+      {Array.from({ length: SEGMENT_COUNT }).map((_, idx) => (
+        <g key={`skyline-segment-${idx}`} transform={`translate(${idx * SEGMENT_WIDTH},0)`}>
+          <CitySkyline
+            city={profile.city}
+            foregroundColor={profile.palette.skylineDark}
+            backgroundColor={profile.palette.skylineLight}
+            isNight={isNight}
+            windowsPatternId={windowsPatternId}
+            maskIdSuffix={`${sceneId}-${idx}`}
+          />
+        </g>
+      ))}
+
+      {renderGround()}
+      {renderForeground()}
+
+      <g transform={`translate(${SEGMENT_WIDTH},0)`}>
+        {renderSceneElement()}
+      </g>
+
+      {particles.map((particle, i) => (
+        <circle
+          key={`particle-${i}`}
+          cx={particle.x}
+          cy={particle.y}
+          r="0.75"
+          fill={theme.pColor}
+          opacity={particle.alpha}
+          className={theme.pClass}
+          style={{ animationDuration: `${particle.speed * 3}s`, animationDelay: `${particle.delay}s` }}
+        />
+      ))}
+    </svg>
   );
 };
 
